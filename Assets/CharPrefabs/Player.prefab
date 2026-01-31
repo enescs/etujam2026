@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 5307342249829220804}
   - component: {fileID: 1239808552807220219}
   - component: {fileID: 3024419035743056268}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -181,7 +181,7 @@ MonoBehaviour:
   pickupRadius: 1.5
   throwableLayer:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 0
   holdPoint: {fileID: 0}
   throwDuration: 0.5
   arcHeight: 0.5
@@ -194,7 +194,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 4788024255020800994}
-  m_Layer: 0
+  m_Layer: 9
   m_Name: HoldPoint
   m_TagString: Untagged
   m_Icon: {fileID: 0}

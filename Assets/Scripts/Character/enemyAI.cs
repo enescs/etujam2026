@@ -13,6 +13,7 @@ public class EnemyAI : MonoBehaviour
 {
     [Header("Patrol Settings")]
     [SerializeField] private float patrolRadius = 8f;
+    [SerializeField] private float detectionSpeed = 4;
     [SerializeField] private float patrolSpeed = 2f;
     [SerializeField] private float patrolWaitTime = 2f;
 
@@ -20,7 +21,6 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float chaseSpeed = 5f;
 
     [Header("Detection Settings")]
-    [SerializeField] private float detectionSpeed = 4;
     [SerializeField] private float visionRange = 15f;
     [SerializeField] private float visionAngle = 60f; // half-angle from forward
     [SerializeField] private float detectionContributionClose = 1f;
@@ -77,6 +77,8 @@ public class EnemyAI : MonoBehaviour
         spawnPosition = transform.position;
         rb = GetComponent<Rigidbody2D>();
         PickNewPatrolPoint();
+        Physics2D.IgnoreLayerCollision(7, 9, true);
+        Physics2D.IgnoreLayerCollision(7, 3, true);
     }
 
     private void Start()
@@ -112,7 +114,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         switch (CurrentState)
         {
@@ -175,7 +177,7 @@ public class EnemyAI : MonoBehaviour
     private void PickNewPatrolPoint()
     {
         Vector2 randomCircle = Random.insideUnitCircle * patrolRadius;
-        currentPatrolTarget = spawnPosition + new Vector3(randomCircle.x, randomCircle.y, 0f);
+        currentPatrolTarget = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
     }
 
     // ─────────────────────────────────────────────
@@ -197,9 +199,8 @@ public class EnemyAI : MonoBehaviour
             // Contribute to the shared detection bar
             float contribution = CalculateDetectionContribution();
             if (DetectionBar.Instance != null)
-                DetectionBar.Instance.AddDetection(contribution * Time.deltaTime, this);
-            else
-                Debug.LogWarning($"[EnemyAI] Has LOS on player (contribution: {contribution:F2}) but DetectionBar not found in scene!", this);
+                DetectionBar.Instance.AddDetection(contribution * Time.deltaTime * detectionSpeed, this);
+
         }
         else if (previousLOS && !HasLOS)
         {
@@ -212,6 +213,10 @@ public class EnemyAI : MonoBehaviour
     private bool CheckLineOfSight()
     {
         if (playerTransform == null) return false;
+
+        // Oyuncu gizliyse görme
+        if (PlayerHiding.Instance != null && PlayerHiding.Instance.IsHidden)
+            return false;
 
         Vector3 dirToPlayer = (playerTransform.position - transform.position);
         float distance = dirToPlayer.magnitude;
@@ -255,8 +260,7 @@ public class EnemyAI : MonoBehaviour
         else
             distanceFactor = detectionContributionFar;
 
-        Debug.Log(distanceFactor * angleFactor * detectionSpeed);
-        return distanceFactor * angleFactor*detectionSpeed;
+        return distanceFactor * angleFactor;
     }
 
     // ─────────────────────────────────────────────
@@ -274,6 +278,16 @@ public class EnemyAI : MonoBehaviour
     private void UpdateChase()
     {
         if (playerTransform == null) return;
+
+        // Oyuncu gizlendiyse takibi bırak
+        if (PlayerHiding.Instance != null && PlayerHiding.Instance.IsHidden)
+        {
+            CurrentState = EnemyState.Patrol;
+            isTrackingPlayer = false;
+            HasLOS = false;
+            PickNewPatrolPoint();
+            return;
+        }
 
         FlipToward(playerTransform.position);
         MoveToward(playerTransform.position, chaseSpeed);
@@ -335,7 +349,9 @@ public class EnemyAI : MonoBehaviour
 
     public void LureToPosition(Vector3 position)
     {
-        if (CurrentState != EnemyState.SpiritIdle) return;
+
+        if (CurrentState != EnemyState.SpiritIdle && CurrentState != EnemyState.SpiritLured)
+            return;
 
         lureTarget = position;
         lureTimer = lureDuration;
@@ -348,6 +364,8 @@ public class EnemyAI : MonoBehaviour
 
         if (Vector3.Distance(transform.position, lureTarget) < lureArriveDistance)
         {
+            Debug.Log(lureTimer);
+
             lureTimer -= Time.deltaTime;
             if (lureTimer <= 0f)
             {
@@ -360,7 +378,7 @@ public class EnemyAI : MonoBehaviour
     private void PickNewSpiritWanderPoint()
     {
         Vector2 randomCircle = Random.insideUnitCircle * spiritWanderRadius;
-        currentPatrolTarget = spawnPosition + new Vector3(randomCircle.x, randomCircle.y, 0f);
+        currentPatrolTarget = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
     }
 
     // ─────────────────────────────────────────────
@@ -369,23 +387,19 @@ public class EnemyAI : MonoBehaviour
 
     private void MoveToward(Vector3 target, float speed)
     {
-        Vector3 direction = (target - transform.position);
-        direction.z = 0f;
+        Vector2 current = rb.position;
+        Vector2 target2D = (Vector2)target;
+
+        Vector2 direction = target2D - current;
 
         if (direction.magnitude < 0.1f) return;
 
         direction.Normalize();
         FlipToward(target);
 
-        if (rb != null)
-        {
-            rb.MovePosition(transform.position + direction * speed * Time.deltaTime);
-        }
-        else
-        {
-            transform.position += direction * speed * Time.deltaTime;
-        }
+        rb.MovePosition(current + direction * speed * Time.fixedDeltaTime);
     }
+
 
     private void FlipToward(Vector3 target)
     {
