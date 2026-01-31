@@ -65,7 +65,6 @@
     "explorer.fileNesting.enabled": true,
     "explorer.fileNesting.patterns": {
         "*.sln": "*.csproj",
-        "*.slnx": "*.csproj"
     },
-    "dotnet.defaultSolution": "etujam2026.slnx"
+    "dotnet.defaultSolution": "etujam2026.sln"
 }
