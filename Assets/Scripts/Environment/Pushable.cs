@@ -17,6 +17,12 @@ public class Pushable : MonoBehaviour
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        
+        // Başlangıçta Kinematic yap - çarpınca hareket etmesin
+        if (rb != null)
+        {
+            rb.bodyType = RigidbodyType2D.Kinematic;
+        }
     }
 
     public bool CanBePushed()
@@ -89,9 +95,9 @@ public class Pushable : MonoBehaviour
         isBeingPushed = false;
         pusher = null;
 
+        // Kinematic kal - çarpınca hareket etmesin
         if (rb != null)
         {
-            rb.bodyType = RigidbodyType2D.Dynamic;
             rb.linearVelocity = Vector2.zero;
         }
 
@@ -102,17 +108,16 @@ public class Pushable : MonoBehaviour
     {
         if (!isBeingPushed || pusher == null) return;
 
-        // Pusher'ı takip et (offset'i koruyarak)
+        // Pusher'ı anında takip et (offset'i koruyarak) - aynı hızda hareket
         Vector2 targetPos = (Vector2)pusher.position + offsetFromPusher;
 
         if (rb != null)
         {
-            Vector2 newPos = Vector2.Lerp(rb.position, targetPos, dragSmoothness * Time.fixedDeltaTime);
-            rb.MovePosition(newPos);
+            rb.MovePosition(targetPos);
         }
         else
         {
-            transform.position = Vector2.Lerp(transform.position, targetPos, dragSmoothness * Time.fixedDeltaTime);
+            transform.position = targetPos;
         }
     }
 

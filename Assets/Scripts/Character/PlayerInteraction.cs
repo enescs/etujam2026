@@ -13,8 +13,16 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private float throwDuration = 0.6f;
     [SerializeField] private float arcHeight = 0.5f;
 
+    [Header("Push/Pull Settings")]
+    [SerializeField] private float pushRange = 1.5f;
+    [SerializeField] private LayerMask pushableLayer;
+
     private GameObject heldItem;
     private Camera mainCamera;
+    private Pushable currentPushable;
+
+    // Push durumunu dışarıya açıkla (PlayerController hız için kullanır)
+    public bool IsPushing => currentPushable != null;
 
     void Awake()
     {
@@ -42,6 +50,15 @@ public class PlayerInteraction : MonoBehaviour
         if (Keyboard.current.rKey.wasPressedThisFrame)
         {
             ToggleMask();
+        }
+
+        // Q tuşu - itme/çekme (toggle: bir bas başla, bir daha bas bırak)
+        if (Keyboard.current.qKey.wasPressedThisFrame && heldItem == null)
+        {
+            if (currentPushable == null)
+                TryStartPush();
+            else
+                StopPush();
         }
     }
 
@@ -176,9 +193,64 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
+    private void TryStartPush()
+    {
+        Debug.Log($"[Push] TryStartPush called. pushRange={pushRange}, pushableLayer={pushableLayer.value}");
+        
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, pushRange, pushableLayer);
+
+        Debug.Log($"[Push] Found {colliders.Length} colliders in range");
+        
+        if (colliders.Length == 0) return;
+
+        // En yakın pushable'ı bul
+        Collider2D closest = null;
+        float closestDistance = float.MaxValue;
+
+        foreach (var col in colliders)
+        {
+            Debug.Log($"[Push] Checking collider: {col.gameObject.name}");
+            float dist = Vector2.Distance(transform.position, col.transform.position);
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                closest = col;
+            }
+        }
+
+        if (closest != null)
+        {
+            Pushable pushable = closest.GetComponent<Pushable>();
+            Debug.Log($"[Push] Closest: {closest.gameObject.name}, has Pushable: {pushable != null}");
+            
+            if (pushable != null)
+            {
+                Debug.Log($"[Push] CanBePushed: {pushable.CanBePushed()}");
+                if (pushable.CanBePushed())
+                {
+                    currentPushable = pushable;
+                    currentPushable.StartPush(transform);
+                    Debug.Log($"[Push] Started pushing {closest.gameObject.name}");
+                }
+            }
+        }
+    }
+
+    private void StopPush()
+    {
+        if (currentPushable != null)
+        {
+            currentPushable.StopPush();
+            currentPushable = null;
+        }
+    }
+
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, pickupRadius);
+        
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, pushRange);
     }
 }
