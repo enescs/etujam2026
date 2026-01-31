@@ -213,6 +213,10 @@ public class EnemyAI : MonoBehaviour
     {
         if (playerTransform == null) return false;
 
+        // Oyuncu gizliyse görme
+        if (PlayerHiding.Instance != null && PlayerHiding.Instance.IsHidden)
+            return false;
+
         Vector3 dirToPlayer = (playerTransform.position - transform.position);
         float distance = dirToPlayer.magnitude;
 
@@ -274,6 +278,16 @@ public class EnemyAI : MonoBehaviour
     private void UpdateChase()
     {
         if (playerTransform == null) return;
+
+        // Oyuncu gizlendiyse takibi bırak
+        if (PlayerHiding.Instance != null && PlayerHiding.Instance.IsHidden)
+        {
+            CurrentState = EnemyState.Patrol;
+            isTrackingPlayer = false;
+            HasLOS = false;
+            PickNewPatrolPoint();
+            return;
+        }
 
         FlipToward(playerTransform.position);
         MoveToward(playerTransform.position, chaseSpeed);

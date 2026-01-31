@@ -97,6 +97,11 @@ public class PlayerInteraction : MonoBehaviour
 
         heldItem.transform.SetParent(null);
 
+        // Z pozisyonunu ayarla (önde görünsün)
+        Vector3 pos = heldItem.transform.position;
+        pos.z = -1f;
+        heldItem.transform.position = pos;
+
         Rigidbody2D itemRb = heldItem.GetComponent<Rigidbody2D>();
         if (itemRb != null)
         {
@@ -114,7 +119,7 @@ public class PlayerInteraction : MonoBehaviour
         Vector3 mouseScreenPos = Mouse.current.position.ReadValue();
         mouseScreenPos.z = Mathf.Abs(mainCamera.transform.position.z);
         Vector3 targetPos = mainCamera.ScreenToWorldPoint(mouseScreenPos);
-        targetPos.z = 0f;
+        targetPos.z = -1f;
 
         // Eşyayı bırak
         GameObject thrownItem = heldItem;
@@ -135,6 +140,7 @@ public class PlayerInteraction : MonoBehaviour
     private IEnumerator MoveToTarget(GameObject item, Vector3 targetPos)
     {
         Vector3 startPos = item.transform.position;
+        startPos.z = -1f; // Z'yi -1 yap (kameraya yakın)
         float elapsed = 0f;
 
         while (elapsed < throwDuration)
@@ -151,12 +157,14 @@ public class PlayerInteraction : MonoBehaviour
             // Yay efekti (ortada yukarı, başta/sonda aşağı)
             float arc = 4f * arcHeight * t * (1f - t);
             currentPos.y += arc;
+            currentPos.z = -1f; // Z her zaman -1 (önde görünsün)
 
             item.transform.position = currentPos;
             yield return null;
         }
 
         // Tam hedefe yerleştir
+        targetPos.z = -1f;
         item.transform.position = targetPos;
 
         // Rigidbody'yi tekrar aç (durağan kalacak)

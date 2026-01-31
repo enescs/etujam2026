@@ -181,7 +181,7 @@ MonoBehaviour:
   pickupRadius: 1.5
   throwableLayer:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 0
   holdPoint: {fileID: 0}
   throwDuration: 0.5
   arcHeight: 0.5
