@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 5307342249829220804}
   - component: {fileID: 1239808552807220219}
   - component: {fileID: 3024419035743056268}
+  - component: {fileID: 8087875608949183766}
   m_Layer: 0
   m_Name: Player
   m_TagString: Player
@@ -185,6 +186,43 @@ MonoBehaviour:
   holdPoint: {fileID: 0}
   throwDuration: 0.5
   arcHeight: 0.5
+--- !u!70 &8087875608949183766
+CapsuleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1016707650555617098}
+  m_Enabled: 1
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: 0, y: 0}
+  m_Size: {x: 1, y: 1}
+  m_Direction: 0
 --- !u!1 &8151076311906712187
 GameObject:
   m_ObjectHideFlags: 0
