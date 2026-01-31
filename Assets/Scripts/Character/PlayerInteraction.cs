@@ -13,8 +13,16 @@ public class PlayerInteraction : MonoBehaviour
     [SerializeField] private float throwDuration = 0.6f;
     [SerializeField] private float arcHeight = 0.5f;
 
+    [Header("Push/Pull Settings")]
+    [SerializeField] private float pushRange = 1.5f;
+    [SerializeField] private LayerMask pushableLayer;
+
     private GameObject heldItem;
     private Camera mainCamera;
+    private Pushable currentPushable;
+
+    // Push durumunu dışarıya açıkla (PlayerController hız için kullanır)
+    public bool IsPushing => currentPushable != null;
 
     void Awake()
     {
@@ -23,7 +31,7 @@ public class PlayerInteraction : MonoBehaviour
 
     void Update()
     {
-        // E tuşu - eşya al/bırak
+        // E key - pick up / drop
         if (Keyboard.current.eKey.wasPressedThisFrame)
         {
             if (heldItem == null)
@@ -32,16 +40,68 @@ public class PlayerInteraction : MonoBehaviour
                 DropItem();
         }
 
-        // Sol tık - fırlat
-        if (Mouse.current.leftButton.wasPressedThisFrame && heldItem != null)
+        // Left click - throw (only in spirit world)
+        if (Mouse.current.leftButton.wasPressedThisFrame && heldItem != null
+            && MaskSystem.Instance != null && MaskSystem.Instance.IsMaskOn)
         {
             ThrowItem();
         }
 
-        // R tuşu - maske tak/çıkar
+        // R key - mask toggle
         if (Keyboard.current.rKey.wasPressedThisFrame)
         {
             ToggleMask();
+        }
+
+        // Q tuşu - itme/çekme (toggle: bir bas başla, bir daha bas bırak)
+        if (Keyboard.current.qKey.wasPressedThisFrame && heldItem == null)
+        {
+            if (currentPushable == null)
+                TryStartPush();
+            else
+                StopPush();
+        }
+
+        // F key - destroy obstacle (hold)
+        HandleObstacleDestruction();
+    }
+
+    private DestructibleObstacle currentObstacle;
+
+    private void HandleObstacleDestruction()
+    {
+        // Check if near a destructible obstacle
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, pickupRadius);
+        DestructibleObstacle nearbyObstacle = null;
+
+        foreach (var col in colliders)
+        {
+            DestructibleObstacle obstacle = col.GetComponent<DestructibleObstacle>();
+            if (obstacle != null)
+            {
+                nearbyObstacle = obstacle;
+                break;
+            }
+        }
+
+        // F key held
+        if (Keyboard.current.fKey.isPressed && nearbyObstacle != null)
+        {
+            if (currentObstacle != nearbyObstacle)
+            {
+                currentObstacle?.StopDestroying();
+                currentObstacle = nearbyObstacle;
+            }
+            currentObstacle.StartDestroying();
+        }
+        else
+        {
+            // F released or moved away
+            if (currentObstacle != null)
+            {
+                currentObstacle.StopDestroying();
+                currentObstacle = null;
+            }
         }
     }
 
@@ -59,7 +119,7 @@ public class PlayerInteraction : MonoBehaviour
 
         if (colliders.Length == 0) return;
 
-        // En yakın eşyayı bul
+        // Find closest item
         Collider2D closest = null;
         float closestDistance = float.MaxValue;
 
@@ -77,7 +137,6 @@ public class PlayerInteraction : MonoBehaviour
         {
             heldItem = closest.gameObject;
 
-            // Rigidbody2D'yi devre dışı bırak
             Rigidbody2D itemRb = heldItem.GetComponent<Rigidbody2D>();
             if (itemRb != null)
             {
@@ -85,9 +144,16 @@ public class PlayerInteraction : MonoBehaviour
                 itemRb.bodyType = RigidbodyType2D.Kinematic;
             }
 
-            // Eşyayı holdPoint'e bağla
+            // Attach to hold point
             heldItem.transform.SetParent(holdPoint != null ? holdPoint : transform);
             heldItem.transform.localPosition = Vector3.zero;
+
+            // Reset lure state so it can be thrown again
+            ThrowableLure lure = heldItem.GetComponent<ThrowableLure>();
+            if (lure != null)
+            {
+                lure.ResetLure();
+            }
         }
     }
 
@@ -97,10 +163,17 @@ public class PlayerInteraction : MonoBehaviour
 
         heldItem.transform.SetParent(null);
 
+        // Z pozisyonunu ayarla (önde görünsün)
+        Vector3 pos = heldItem.transform.position;
+        pos.z = -1f;
+        heldItem.transform.position = pos;
+
+        // Stay kinematic so nothing can push it
         Rigidbody2D itemRb = heldItem.GetComponent<Rigidbody2D>();
         if (itemRb != null)
         {
-            itemRb.bodyType = RigidbodyType2D.Dynamic;
+            itemRb.bodyType = RigidbodyType2D.Kinematic;
+            itemRb.linearVelocity = Vector2.zero;
         }
 
         heldItem = null;
@@ -110,18 +183,17 @@ public class PlayerInteraction : MonoBehaviour
     {
         if (heldItem == null) return;
 
-        // Mouse pozisyonunu world space'e çevir
+        // Convert mouse position to world space
         Vector3 mouseScreenPos = Mouse.current.position.ReadValue();
         mouseScreenPos.z = Mathf.Abs(mainCamera.transform.position.z);
         Vector3 targetPos = mainCamera.ScreenToWorldPoint(mouseScreenPos);
-        targetPos.z = 0f;
+        targetPos.z = -1f;
 
-        // Eşyayı bırak
+        // Release item
         GameObject thrownItem = heldItem;
         heldItem.transform.SetParent(null);
         heldItem = null;
 
-        // Rigidbody'yi kapat, coroutine ile hareket ettir
         Rigidbody2D itemRb = thrownItem.GetComponent<Rigidbody2D>();
         if (itemRb != null)
         {
@@ -135,6 +207,7 @@ public class PlayerInteraction : MonoBehaviour
     private IEnumerator MoveToTarget(GameObject item, Vector3 targetPos)
     {
         Vector3 startPos = item.transform.position;
+        startPos.z = -1f; // Z'yi -1 yap (kameraya yakın)
         float elapsed = 0f;
 
         while (elapsed < throwDuration)
@@ -142,29 +215,90 @@ public class PlayerInteraction : MonoBehaviour
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / throwDuration);
 
-            // Smooth Step: yavaş başla, ortada hızlan, yavaş bitir
             float easedT = t * t * (3f - 2f * t);
 
-            // XY pozisyonu (düz lerp)
             Vector3 currentPos = Vector3.Lerp(startPos, targetPos, easedT);
 
-            // Yay efekti (ortada yukarı, başta/sonda aşağı)
             float arc = 4f * arcHeight * t * (1f - t);
             currentPos.y += arc;
+            currentPos.z = -1f; // Z her zaman -1 (önde görünsün)
 
             item.transform.position = currentPos;
             yield return null;
         }
 
         // Tam hedefe yerleştir
+        targetPos.z = -1f;
+        // Land at target
         item.transform.position = targetPos;
 
-        // Rigidbody'yi tekrar aç (durağan kalacak)
+        // Remove physics so nothing can push it
         Rigidbody2D itemRb = item.GetComponent<Rigidbody2D>();
         if (itemRb != null)
+            Destroy(itemRb);
+
+        // Set collider to trigger so pickup still works but no physical interaction
+        Collider2D itemCol = item.GetComponent<Collider2D>();
+        if (itemCol != null)
+            itemCol.isTrigger = true;
+
+        // Activate lure on landing
+        ThrowableLure lure = item.GetComponent<ThrowableLure>();
+        if (lure != null)
         {
-            itemRb.bodyType = RigidbodyType2D.Dynamic;
-            itemRb.linearVelocity = Vector2.zero;
+            lure.Activate();
+        }
+    }
+
+    private void TryStartPush()
+    {
+        Debug.Log($"[Push] TryStartPush called. pushRange={pushRange}, pushableLayer={pushableLayer.value}");
+        
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, pushRange, pushableLayer);
+
+        Debug.Log($"[Push] Found {colliders.Length} colliders in range");
+        
+        if (colliders.Length == 0) return;
+
+        // En yakın pushable'ı bul
+        Collider2D closest = null;
+        float closestDistance = float.MaxValue;
+
+        foreach (var col in colliders)
+        {
+            Debug.Log($"[Push] Checking collider: {col.gameObject.name}");
+            float dist = Vector2.Distance(transform.position, col.transform.position);
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                closest = col;
+            }
+        }
+
+        if (closest != null)
+        {
+            Pushable pushable = closest.GetComponent<Pushable>();
+            Debug.Log($"[Push] Closest: {closest.gameObject.name}, has Pushable: {pushable != null}");
+            
+            if (pushable != null)
+            {
+                Debug.Log($"[Push] CanBePushed: {pushable.CanBePushed()}");
+                if (pushable.CanBePushed())
+                {
+                    currentPushable = pushable;
+                    currentPushable.StartPush(transform);
+                    Debug.Log($"[Push] Started pushing {closest.gameObject.name}");
+                }
+            }
+        }
+    }
+
+    private void StopPush()
+    {
+        if (currentPushable != null)
+        {
+            currentPushable.StopPush();
+            currentPushable = null;
         }
     }
 
@@ -172,5 +306,8 @@ public class PlayerInteraction : MonoBehaviour
     {
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, pickupRadius);
+        
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(transform.position, pushRange);
     }
 }

@@ -3,38 +3,69 @@ using UnityEngine;
 public class ThrowableLure : MonoBehaviour
 {
     [SerializeField] private float lureRadius = 10f;
-    [SerializeField] private float lifetime = 6f;
+    [SerializeField] private float pulseInterval = 0.5f;
+    [SerializeField] private float lifetime = 5f;
     [SerializeField] private LayerMask enemyLayer;
 
     private bool activated;
+    private float pulseTimer;
+    private float lifetimeTimer;
 
     /// <summary>
-    /// Call this after the object lands at its thrown position.
+    /// Called by PlayerInteraction when the item lands after being thrown.
     /// </summary>
     public void Activate()
     {
-        if (activated) return;
         activated = true;
+        pulseTimer = 0f;
+        lifetimeTimer = lifetime;
+    }
 
-        // Only works in spirit world
-        if (MaskSystem.Instance == null || !MaskSystem.Instance.IsMaskOn)
+    /// <summary>
+    /// Called by PlayerInteraction when the item is picked up again.
+    /// </summary>
+    public void ResetLure()
+    {
+        activated = false;
+    }
+
+    private void Update()
+    {
+        if (!activated) return;
+
+        // Countdown to destruction
+        lifetimeTimer -= Time.deltaTime;
+        if (lifetimeTimer <= 0f)
         {
             Destroy(gameObject);
             return;
         }
 
-        // Find all enemies in radius and lure them
-        Collider[] hits = Physics.OverlapSphere(transform.position, lureRadius, enemyLayer);
-        foreach (Collider col in hits)
+        // Only lure while mask is on
+        if (MaskSystem.Instance == null || !MaskSystem.Instance.IsMaskOn)
+            return;
+
+        pulseTimer -= Time.deltaTime;
+        if (pulseTimer <= 0f)
+        {
+            pulseTimer = pulseInterval;
+            PullNearbyEnemies();
+        }
+    }
+
+    private void PullNearbyEnemies()
+    {
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, lureRadius, enemyLayer);
+        Debug.Log($"[ThrowableLure] Pulse! Found {hits.Length} colliders in radius {lureRadius}. Mask on: {MaskSystem.Instance?.IsMaskOn}");
+        foreach (Collider2D col in hits)
         {
             EnemyAI enemy = col.GetComponent<EnemyAI>();
             if (enemy != null)
             {
+                Debug.Log($"[ThrowableLure] Luring enemy: {enemy.name}, state: {enemy.CurrentState}");
                 enemy.LureToPosition(transform.position);
             }
         }
-
-        Destroy(gameObject, lifetime);
     }
 
     private void OnDrawGizmosSelected()

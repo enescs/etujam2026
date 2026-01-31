@@ -6,22 +6,34 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Movement")]
     [SerializeField] private float moveSpeed = 5f;
+    [SerializeField] private float pushSpeedMultiplier = 0.5f; // Push sırasında hız çarpanı
 
     private Rigidbody2D rb;
     private Vector2 moveInput;
+    private PlayerInteraction playerInteraction;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        playerInteraction = GetComponent<PlayerInteraction>();
     }
 
     void FixedUpdate()
     {
-        rb.linearVelocity = moveInput * moveSpeed;
+        float currentSpeed = moveSpeed;
+        
+        // Push sırasında yavaşla
+        if (playerInteraction != null && playerInteraction.IsPushing)
+        {
+            currentSpeed *= pushSpeedMultiplier;
+        }
+        
+        rb.linearVelocity = moveInput * currentSpeed;
     }
 
     public void OnMove(InputValue value)
     {
+        if (GetComponent<PlayerClimb>()?.IsClimbing == true) return;
         moveInput = value.Get<Vector2>();
     }
 }

@@ -5,14 +5,15 @@ TagManager:
   serializedVersion: 3
   tags:
   - Stone
+  - Enemy
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - Obstacle
   - Water
   - UI
-  - 
+  - Throwable
   - 
   - 
   - 
