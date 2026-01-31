@@ -1,0 +1,176 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+using System.Collections;
+
+public class PlayerInteraction : MonoBehaviour
+{
+    [Header("Pickup Settings")]
+    [SerializeField] private float pickupRadius = 1.5f;
+    [SerializeField] private LayerMask throwableLayer;
+    [SerializeField] private Transform holdPoint;
+
+    [Header("Throw Settings")]
+    [SerializeField] private float throwDuration = 0.6f;
+    [SerializeField] private float arcHeight = 0.5f;
+
+    private GameObject heldItem;
+    private Camera mainCamera;
+
+    void Awake()
+    {
+        mainCamera = Camera.main;
+    }
+
+    void Update()
+    {
+        // E tuşu - eşya al/bırak
+        if (Keyboard.current.eKey.wasPressedThisFrame)
+        {
+            if (heldItem == null)
+                TryPickup();
+            else
+                DropItem();
+        }
+
+        // Sol tık - fırlat
+        if (Mouse.current.leftButton.wasPressedThisFrame && heldItem != null)
+        {
+            ThrowItem();
+        }
+
+        // R tuşu - maske tak/çıkar
+        if (Keyboard.current.rKey.wasPressedThisFrame)
+        {
+            ToggleMask();
+        }
+    }
+
+    private void ToggleMask()
+    {
+        if (MaskSystem.Instance != null)
+        {
+            MaskSystem.Instance.ToggleMask();
+        }
+    }
+
+    private void TryPickup()
+    {
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, pickupRadius, throwableLayer);
+
+        if (colliders.Length == 0) return;
+
+        // En yakın eşyayı bul
+        Collider2D closest = null;
+        float closestDistance = float.MaxValue;
+
+        foreach (var col in colliders)
+        {
+            float dist = Vector2.Distance(transform.position, col.transform.position);
+            if (dist < closestDistance)
+            {
+                closestDistance = dist;
+                closest = col;
+            }
+        }
+
+        if (closest != null)
+        {
+            heldItem = closest.gameObject;
+
+            // Rigidbody2D'yi devre dışı bırak
+            Rigidbody2D itemRb = heldItem.GetComponent<Rigidbody2D>();
+            if (itemRb != null)
+            {
+                itemRb.linearVelocity = Vector2.zero;
+                itemRb.bodyType = RigidbodyType2D.Kinematic;
+            }
+
+            // Eşyayı holdPoint'e bağla
+            heldItem.transform.SetParent(holdPoint != null ? holdPoint : transform);
+            heldItem.transform.localPosition = Vector3.zero;
+        }
+    }
+
+    private void DropItem()
+    {
+        if (heldItem == null) return;
+
+        heldItem.transform.SetParent(null);
+
+        Rigidbody2D itemRb = heldItem.GetComponent<Rigidbody2D>();
+        if (itemRb != null)
+        {
+            itemRb.bodyType = RigidbodyType2D.Dynamic;
+        }
+
+        heldItem = null;
+    }
+
+    private void ThrowItem()
+    {
+        if (heldItem == null) return;
+
+        // Mouse pozisyonunu world space'e çevir
+        Vector3 mouseScreenPos = Mouse.current.position.ReadValue();
+        mouseScreenPos.z = Mathf.Abs(mainCamera.transform.position.z);
+        Vector3 targetPos = mainCamera.ScreenToWorldPoint(mouseScreenPos);
+        targetPos.z = 0f;
+
+        // Eşyayı bırak
+        GameObject thrownItem = heldItem;
+        heldItem.transform.SetParent(null);
+        heldItem = null;
+
+        // Rigidbody'yi kapat, coroutine ile hareket ettir
+        Rigidbody2D itemRb = thrownItem.GetComponent<Rigidbody2D>();
+        if (itemRb != null)
+        {
+            itemRb.bodyType = RigidbodyType2D.Kinematic;
+            itemRb.linearVelocity = Vector2.zero;
+        }
+
+        StartCoroutine(MoveToTarget(thrownItem, targetPos));
+    }
+
+    private IEnumerator MoveToTarget(GameObject item, Vector3 targetPos)
+    {
+        Vector3 startPos = item.transform.position;
+        float elapsed = 0f;
+
+        while (elapsed < throwDuration)
+        {
+            elapsed += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsed / throwDuration);
+
+            // Smooth Step: yavaş başla, ortada hızlan, yavaş bitir
+            float easedT = t * t * (3f - 2f * t);
+
+            // XY pozisyonu (düz lerp)
+            Vector3 currentPos = Vector3.Lerp(startPos, targetPos, easedT);
+
+            // Yay efekti (ortada yukarı, başta/sonda aşağı)
+            float arc = 4f * arcHeight * t * (1f - t);
+            currentPos.y += arc;
+
+            item.transform.position = currentPos;
+            yield return null;
+        }
+
+        // Tam hedefe yerleştir
+        item.transform.position = targetPos;
+
+        // Rigidbody'yi tekrar aç (durağan kalacak)
+        Rigidbody2D itemRb = item.GetComponent<Rigidbody2D>();
+        if (itemRb != null)
+        {
+            itemRb.bodyType = RigidbodyType2D.Dynamic;
+            itemRb.linearVelocity = Vector2.zero;
+        }
+    }
+
+    void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Color.cyan;
+        Gizmos.DrawWireSphere(transform.position, pickupRadius);
+    }
+}
