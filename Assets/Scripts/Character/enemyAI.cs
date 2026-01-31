@@ -13,6 +13,7 @@ public class EnemyAI : MonoBehaviour
 {
     [Header("Patrol Settings")]
     [SerializeField] private float patrolRadius = 8f;
+    [SerializeField] private float detectionSpeed = 4;
     [SerializeField] private float patrolSpeed = 2f;
     [SerializeField] private float patrolWaitTime = 2f;
 
@@ -20,7 +21,6 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float chaseSpeed = 5f;
 
     [Header("Detection Settings")]
-    [SerializeField] private float detectionSpeed = 4;
     [SerializeField] private float visionRange = 15f;
     [SerializeField] private float visionAngle = 60f; // half-angle from forward
     [SerializeField] private float detectionContributionClose = 1f;
@@ -197,9 +197,8 @@ public class EnemyAI : MonoBehaviour
             // Contribute to the shared detection bar
             float contribution = CalculateDetectionContribution();
             if (DetectionBar.Instance != null)
-                DetectionBar.Instance.AddDetection(contribution * Time.deltaTime, this);
-            else
-                Debug.LogWarning($"[EnemyAI] Has LOS on player (contribution: {contribution:F2}) but DetectionBar not found in scene!", this);
+                DetectionBar.Instance.AddDetection(contribution * Time.deltaTime * detectionSpeed, this);
+
         }
         else if (previousLOS && !HasLOS)
         {
@@ -255,8 +254,7 @@ public class EnemyAI : MonoBehaviour
         else
             distanceFactor = detectionContributionFar;
 
-        Debug.Log(distanceFactor * angleFactor * detectionSpeed);
-        return distanceFactor * angleFactor*detectionSpeed;
+        return distanceFactor * angleFactor;
     }
 
     // ─────────────────────────────────────────────
@@ -335,7 +333,9 @@ public class EnemyAI : MonoBehaviour
 
     public void LureToPosition(Vector3 position)
     {
-        if (CurrentState != EnemyState.SpiritIdle) return;
+
+        if (CurrentState != EnemyState.SpiritIdle && CurrentState != EnemyState.SpiritLured)
+            return;
 
         lureTarget = position;
         lureTimer = lureDuration;
@@ -348,6 +348,8 @@ public class EnemyAI : MonoBehaviour
 
         if (Vector3.Distance(transform.position, lureTarget) < lureArriveDistance)
         {
+            Debug.Log(lureTimer);
+
             lureTimer -= Time.deltaTime;
             if (lureTimer <= 0f)
             {

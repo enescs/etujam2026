@@ -23,7 +23,7 @@ public class PlayerInteraction : MonoBehaviour
 
     void Update()
     {
-        // E tuşu - eşya al/bırak
+        // E key - pick up / drop
         if (Keyboard.current.eKey.wasPressedThisFrame)
         {
             if (heldItem == null)
@@ -32,13 +32,14 @@ public class PlayerInteraction : MonoBehaviour
                 DropItem();
         }
 
-        // Sol tık - fırlat
-        if (Mouse.current.leftButton.wasPressedThisFrame && heldItem != null)
+        // Left click - throw (only in spirit world)
+        if (Mouse.current.leftButton.wasPressedThisFrame && heldItem != null
+            && MaskSystem.Instance != null && MaskSystem.Instance.IsMaskOn)
         {
             ThrowItem();
         }
 
-        // R tuşu - maske tak/çıkar
+        // R key - mask toggle
         if (Keyboard.current.rKey.wasPressedThisFrame)
         {
             ToggleMask();
@@ -59,7 +60,7 @@ public class PlayerInteraction : MonoBehaviour
 
         if (colliders.Length == 0) return;
 
-        // En yakın eşyayı bul
+        // Find closest item
         Collider2D closest = null;
         float closestDistance = float.MaxValue;
 
@@ -77,7 +78,6 @@ public class PlayerInteraction : MonoBehaviour
         {
             heldItem = closest.gameObject;
 
-            // Rigidbody2D'yi devre dışı bırak
             Rigidbody2D itemRb = heldItem.GetComponent<Rigidbody2D>();
             if (itemRb != null)
             {
@@ -85,9 +85,16 @@ public class PlayerInteraction : MonoBehaviour
                 itemRb.bodyType = RigidbodyType2D.Kinematic;
             }
 
-            // Eşyayı holdPoint'e bağla
+            // Attach to hold point
             heldItem.transform.SetParent(holdPoint != null ? holdPoint : transform);
             heldItem.transform.localPosition = Vector3.zero;
+
+            // Reset lure state so it can be thrown again
+            ThrowableLure lure = heldItem.GetComponent<ThrowableLure>();
+            if (lure != null)
+            {
+                lure.ResetLure();
+            }
         }
     }
 
@@ -97,10 +104,12 @@ public class PlayerInteraction : MonoBehaviour
 
         heldItem.transform.SetParent(null);
 
+        // Stay kinematic so nothing can push it
         Rigidbody2D itemRb = heldItem.GetComponent<Rigidbody2D>();
         if (itemRb != null)
         {
-            itemRb.bodyType = RigidbodyType2D.Dynamic;
+            itemRb.bodyType = RigidbodyType2D.Kinematic;
+            itemRb.linearVelocity = Vector2.zero;
         }
 
         heldItem = null;
@@ -110,18 +119,17 @@ public class PlayerInteraction : MonoBehaviour
     {
         if (heldItem == null) return;
 
-        // Mouse pozisyonunu world space'e çevir
+        // Convert mouse position to world space
         Vector3 mouseScreenPos = Mouse.current.position.ReadValue();
         mouseScreenPos.z = Mathf.Abs(mainCamera.transform.position.z);
         Vector3 targetPos = mainCamera.ScreenToWorldPoint(mouseScreenPos);
         targetPos.z = 0f;
 
-        // Eşyayı bırak
+        // Release item
         GameObject thrownItem = heldItem;
         heldItem.transform.SetParent(null);
         heldItem = null;
 
-        // Rigidbody'yi kapat, coroutine ile hareket ettir
         Rigidbody2D itemRb = thrownItem.GetComponent<Rigidbody2D>();
         if (itemRb != null)
         {
@@ -142,13 +150,10 @@ public class PlayerInteraction : MonoBehaviour
             elapsed += Time.deltaTime;
             float t = Mathf.Clamp01(elapsed / throwDuration);
 
-            // Smooth Step: yavaş başla, ortada hızlan, yavaş bitir
             float easedT = t * t * (3f - 2f * t);
 
-            // XY pozisyonu (düz lerp)
             Vector3 currentPos = Vector3.Lerp(startPos, targetPos, easedT);
 
-            // Yay efekti (ortada yukarı, başta/sonda aşağı)
             float arc = 4f * arcHeight * t * (1f - t);
             currentPos.y += arc;
 
@@ -156,15 +161,24 @@ public class PlayerInteraction : MonoBehaviour
             yield return null;
         }
 
-        // Tam hedefe yerleştir
+        // Land at target
         item.transform.position = targetPos;
 
-        // Rigidbody'yi tekrar aç (durağan kalacak)
+        // Remove physics so nothing can push it
         Rigidbody2D itemRb = item.GetComponent<Rigidbody2D>();
         if (itemRb != null)
+            Destroy(itemRb);
+
+        // Set collider to trigger so pickup still works but no physical interaction
+        Collider2D itemCol = item.GetComponent<Collider2D>();
+        if (itemCol != null)
+            itemCol.isTrigger = true;
+
+        // Activate lure on landing
+        ThrowableLure lure = item.GetComponent<ThrowableLure>();
+        if (lure != null)
         {
-            itemRb.bodyType = RigidbodyType2D.Dynamic;
-            itemRb.linearVelocity = Vector2.zero;
+            lure.Activate();
         }
     }
 
