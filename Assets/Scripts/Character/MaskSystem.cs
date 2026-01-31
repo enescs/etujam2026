@@ -12,7 +12,6 @@ public class MaskSystem : MonoBehaviour
 
     [Header("Mask Toggle")]
     [SerializeField] private KeyCode maskKey = KeyCode.E;
-    [SerializeField] private float maskCooldown = 0.5f; // prevent accidental double-tap
 
     public bool IsMaskOn { get; private set; }
     public float CurrentCorruption { get; private set; }
@@ -39,7 +38,6 @@ public class MaskSystem : MonoBehaviour
     /// </summary>
     public event Action OnFullCorruption;
 
-    private float cooldownTimer;
     private bool gameOverTriggered;
 
     private void Awake()
@@ -54,13 +52,10 @@ public class MaskSystem : MonoBehaviour
 
     private void Update()
     {
-        cooldownTimer -= Time.deltaTime;
-
-        // Handle mask toggle input
-        if (Input.GetKeyDown(maskKey) && cooldownTimer <= 0f && !IsFullyCorrupted)
+        // Instant toggle - no cooldown
+        if (Input.GetKeyDown(maskKey) && !IsFullyCorrupted)
         {
             ToggleMask();
-            cooldownTimer = maskCooldown;
         }
 
         // Accumulate corruption while mask is on

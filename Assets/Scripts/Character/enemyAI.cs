@@ -265,20 +265,23 @@ public class EnemyAI : MonoBehaviour
 
     private void HandleMaskOn()
     {
-        // Cache real world state if needed for non-reset approach
+        // Instant snap to spirit world
         CurrentState = EnemyState.SpiritIdle;
         isTrackingPlayer = false;
         HasLOS = false;
+        isWaitingAtPatrolPoint = false;
+        losLostTimer = 0f;
         SetVisuals(true);
-        PickNewPatrolPoint(); // reuse for spirit wandering
+        PickNewSpiritWanderPoint();
     }
 
     private void HandleMaskOff()
     {
-        // Reset to patrol - simple and forgiving
+        // Instant snap back to real world - reset to patrol
         CurrentState = EnemyState.Patrol;
         isTrackingPlayer = false;
         HasLOS = false;
+        isWaitingAtPatrolPoint = false;
         losLostTimer = 0f;
         SetVisuals(false);
         PickNewPatrolPoint();
