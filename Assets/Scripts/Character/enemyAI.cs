@@ -77,6 +77,8 @@ public class EnemyAI : MonoBehaviour
         spawnPosition = transform.position;
         rb = GetComponent<Rigidbody2D>();
         PickNewPatrolPoint();
+        Physics2D.IgnoreLayerCollision(7, 9, true);
+        Physics2D.IgnoreLayerCollision(7, 3, true);
     }
 
     private void Start()
@@ -112,7 +114,7 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    private void Update()
+    private void FixedUpdate()
     {
         switch (CurrentState)
         {
@@ -175,7 +177,7 @@ public class EnemyAI : MonoBehaviour
     private void PickNewPatrolPoint()
     {
         Vector2 randomCircle = Random.insideUnitCircle * patrolRadius;
-        currentPatrolTarget = spawnPosition + new Vector3(randomCircle.x, randomCircle.y, 0f);
+        currentPatrolTarget = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
     }
 
     // ─────────────────────────────────────────────
@@ -362,7 +364,7 @@ public class EnemyAI : MonoBehaviour
     private void PickNewSpiritWanderPoint()
     {
         Vector2 randomCircle = Random.insideUnitCircle * spiritWanderRadius;
-        currentPatrolTarget = spawnPosition + new Vector3(randomCircle.x, randomCircle.y, 0f);
+        currentPatrolTarget = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
     }
 
     // ─────────────────────────────────────────────
@@ -371,23 +373,19 @@ public class EnemyAI : MonoBehaviour
 
     private void MoveToward(Vector3 target, float speed)
     {
-        Vector3 direction = (target - transform.position);
-        direction.z = 0f;
+        Vector2 current = rb.position;
+        Vector2 target2D = (Vector2)target;
+
+        Vector2 direction = target2D - current;
 
         if (direction.magnitude < 0.1f) return;
 
         direction.Normalize();
         FlipToward(target);
 
-        if (rb != null)
-        {
-            rb.MovePosition(transform.position + direction * speed * Time.deltaTime);
-        }
-        else
-        {
-            transform.position += direction * speed * Time.deltaTime;
-        }
+        rb.MovePosition(current + direction * speed * Time.fixedDeltaTime);
     }
+
 
     private void FlipToward(Vector3 target)
     {

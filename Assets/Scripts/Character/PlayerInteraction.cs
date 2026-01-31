@@ -44,6 +44,48 @@ public class PlayerInteraction : MonoBehaviour
         {
             ToggleMask();
         }
+
+        // F key - destroy obstacle (hold)
+        HandleObstacleDestruction();
+    }
+
+    private DestructibleObstacle currentObstacle;
+
+    private void HandleObstacleDestruction()
+    {
+        // Check if near a destructible obstacle
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, pickupRadius);
+        DestructibleObstacle nearbyObstacle = null;
+
+        foreach (var col in colliders)
+        {
+            DestructibleObstacle obstacle = col.GetComponent<DestructibleObstacle>();
+            if (obstacle != null)
+            {
+                nearbyObstacle = obstacle;
+                break;
+            }
+        }
+
+        // F key held
+        if (Keyboard.current.fKey.isPressed && nearbyObstacle != null)
+        {
+            if (currentObstacle != nearbyObstacle)
+            {
+                currentObstacle?.StopDestroying();
+                currentObstacle = nearbyObstacle;
+            }
+            currentObstacle.StartDestroying();
+        }
+        else
+        {
+            // F released or moved away
+            if (currentObstacle != null)
+            {
+                currentObstacle.StopDestroying();
+                currentObstacle = null;
+            }
+        }
     }
 
     private void ToggleMask()

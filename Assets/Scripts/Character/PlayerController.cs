@@ -22,6 +22,7 @@ public class PlayerController : MonoBehaviour
 
     public void OnMove(InputValue value)
     {
+        if (GetComponent<PlayerClimb>()?.IsClimbing == true) return;
         moveInput = value.Get<Vector2>();
     }
 }
