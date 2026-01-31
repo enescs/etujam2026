@@ -20,16 +20,21 @@ public class EnemyAI : MonoBehaviour
     [SerializeField] private float chaseSpeed = 5f;
 
     [Header("Detection Settings")]
+    [SerializeField] private float detectionSpeed = 4;
     [SerializeField] private float visionRange = 15f;
     [SerializeField] private float visionAngle = 60f; // half-angle from forward
     [SerializeField] private float detectionContributionClose = 1f;
     [SerializeField] private float detectionContributionMid = 0.5f;
-    [SerializeField] private float detectionContributionFar = 0.15f;
+    [SerializeField] private float detectionContributionFar = 0.6f;
     [SerializeField] private float closeRange = 5f;
     [SerializeField] private float midRange = 10f;
-    [SerializeField] private float trackingRotationSpeed = 5f;
     [SerializeField] private float losLostHoldTime = 2f;
     [SerializeField] private LayerMask obstructionMask;
+
+    /// <summary>
+    /// Facing direction derived from sprite X flip. Right = (1,0,0), Left = (-1,0,0).
+    /// </summary>
+    private Vector3 FacingDirection => transform.localScale.x >= 0f ? Vector3.right : Vector3.left;
 
     [Header("Spirit World Settings")]
     [SerializeField] private float spiritWanderRadius = 10f;
@@ -65,12 +70,12 @@ public class EnemyAI : MonoBehaviour
     private float lureTimer;
 
     // Cached
-    private CharacterController characterController;
+    private Rigidbody2D rb;
 
     private void Awake()
     {
         spawnPosition = transform.position;
-        characterController = GetComponent<CharacterController>();
+        rb = GetComponent<Rigidbody2D>();
         PickNewPatrolPoint();
     }
 
@@ -82,11 +87,15 @@ public class EnemyAI : MonoBehaviour
             playerTransform = playerObj.transform;
 
         // Register with the group manager
-        EnemyGroupManager.Instance.RegisterEnemy(this);
+        if (EnemyGroupManager.Instance != null)
+            EnemyGroupManager.Instance.RegisterEnemy(this);
 
         // Subscribe to mask events
-        MaskSystem.Instance.OnMaskOn += HandleMaskOn;
-        MaskSystem.Instance.OnMaskOff += HandleMaskOff;
+        if (MaskSystem.Instance != null)
+        {
+            MaskSystem.Instance.OnMaskOn += HandleMaskOn;
+            MaskSystem.Instance.OnMaskOff += HandleMaskOff;
+        }
 
         SetVisuals(false); // start in real world
     }
@@ -131,8 +140,8 @@ public class EnemyAI : MonoBehaviour
     {
         if (isTrackingPlayer)
         {
-            // LOS active: rotate toward player, don't move
-            RotateToward(playerTransform.position);
+            // LOS active: face toward player, don't move
+            FlipToward(playerTransform.position);
             return;
         }
 
@@ -166,7 +175,7 @@ public class EnemyAI : MonoBehaviour
     private void PickNewPatrolPoint()
     {
         Vector2 randomCircle = Random.insideUnitCircle * patrolRadius;
-        currentPatrolTarget = spawnPosition + new Vector3(randomCircle.x, 0f, randomCircle.y);
+        currentPatrolTarget = spawnPosition + new Vector3(randomCircle.x, randomCircle.y, 0f);
     }
 
     // ─────────────────────────────────────────────
@@ -187,7 +196,10 @@ public class EnemyAI : MonoBehaviour
 
             // Contribute to the shared detection bar
             float contribution = CalculateDetectionContribution();
-            DetectionBar.Instance.AddDetection(contribution * Time.deltaTime, this);
+            if (DetectionBar.Instance != null)
+                DetectionBar.Instance.AddDetection(contribution * Time.deltaTime, this);
+            else
+                Debug.LogWarning($"[EnemyAI] Has LOS on player (contribution: {contribution:F2}) but DetectionBar not found in scene!", this);
         }
         else if (previousLOS && !HasLOS)
         {
@@ -207,17 +219,18 @@ public class EnemyAI : MonoBehaviour
         // Range check
         if (distance > visionRange) return false;
 
-        // Cone check
-        float angle = Vector3.Angle(transform.forward, dirToPlayer.normalized);
+        // Cone check - use sprite facing direction instead of transform.forward
+        float angle = Vector3.Angle(FacingDirection, dirToPlayer.normalized);
         if (angle > visionAngle) return false;
 
-        // Obstruction check
-        Vector3 eyePos = transform.position + Vector3.up * 1.5f; // approximate eye height
-        Vector3 playerCenter = playerTransform.position + Vector3.up * 1f;
-        if (Physics.Raycast(eyePos, (playerCenter - eyePos).normalized, out RaycastHit hit, distance, obstructionMask))
+        // Obstruction check (2D raycast)
+        Vector2 origin = (Vector2)transform.position;
+        Vector2 playerPos = (Vector2)playerTransform.position;
+        Vector2 dir2D = (playerPos - origin).normalized;
+        RaycastHit2D hit = Physics2D.Raycast(origin, dir2D, distance, obstructionMask);
+        if (hit.collider != null)
         {
-            // Hit something that isn't the player - obstructed
-            if (!hit.transform.CompareTag("Player"))
+            if (!hit.collider.CompareTag("Player"))
                 return false;
         }
 
@@ -227,13 +240,23 @@ public class EnemyAI : MonoBehaviour
     private float CalculateDetectionContribution()
     {
         float distance = Vector3.Distance(transform.position, playerTransform.position);
+        Vector3 dirToPlayer = (playerTransform.position - transform.position).normalized;
 
+        // Angle factor: 1.0 when directly in front, 0.3 at cone edges
+        float angle = Vector3.Angle(FacingDirection, dirToPlayer);
+        float angleFactor = Mathf.Lerp(1f, 0.3f, angle / visionAngle);
+
+        // Distance factor
+        float distanceFactor;
         if (distance <= closeRange)
-            return detectionContributionClose;
+            distanceFactor = detectionContributionClose;
         else if (distance <= midRange)
-            return detectionContributionMid;
+            distanceFactor = detectionContributionMid;
         else
-            return detectionContributionFar;
+            distanceFactor = detectionContributionFar;
+
+        Debug.Log(distanceFactor * angleFactor * detectionSpeed);
+        return distanceFactor * angleFactor*detectionSpeed;
     }
 
     // ─────────────────────────────────────────────
@@ -252,7 +275,7 @@ public class EnemyAI : MonoBehaviour
     {
         if (playerTransform == null) return;
 
-        RotateToward(playerTransform.position);
+        FlipToward(playerTransform.position);
         MoveToward(playerTransform.position, chaseSpeed);
 
         // TODO: Add attack logic when close enough
@@ -337,7 +360,7 @@ public class EnemyAI : MonoBehaviour
     private void PickNewSpiritWanderPoint()
     {
         Vector2 randomCircle = Random.insideUnitCircle * spiritWanderRadius;
-        currentPatrolTarget = spawnPosition + new Vector3(randomCircle.x, 0f, randomCircle.y);
+        currentPatrolTarget = spawnPosition + new Vector3(randomCircle.x, randomCircle.y, 0f);
     }
 
     // ─────────────────────────────────────────────
@@ -347,16 +370,16 @@ public class EnemyAI : MonoBehaviour
     private void MoveToward(Vector3 target, float speed)
     {
         Vector3 direction = (target - transform.position);
-        direction.y = 0f;
+        direction.z = 0f;
 
         if (direction.magnitude < 0.1f) return;
 
         direction.Normalize();
-        RotateToward(target);
+        FlipToward(target);
 
-        if (characterController != null)
+        if (rb != null)
         {
-            characterController.Move(direction * speed * Time.deltaTime);
+            rb.MovePosition(transform.position + direction * speed * Time.deltaTime);
         }
         else
         {
@@ -364,15 +387,14 @@ public class EnemyAI : MonoBehaviour
         }
     }
 
-    private void RotateToward(Vector3 target)
+    private void FlipToward(Vector3 target)
     {
-        Vector3 direction = (target - transform.position);
-        direction.y = 0f;
+        float dirX = target.x - transform.position.x;
+        if (Mathf.Abs(dirX) < 0.01f) return;
 
-        if (direction.sqrMagnitude < 0.01f) return;
-
-        Quaternion targetRotation = Quaternion.LookRotation(direction);
-        transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, trackingRotationSpeed * Time.deltaTime);
+        Vector3 scale = transform.localScale;
+        scale.x = Mathf.Abs(scale.x) * (dirX > 0f ? 1f : -1f);
+        transform.localScale = scale;
     }
 
     private void SetVisuals(bool spiritWorld)
@@ -392,10 +414,11 @@ public class EnemyAI : MonoBehaviour
         Vector3 center = Application.isPlaying ? spawnPosition : transform.position;
         Gizmos.DrawWireSphere(center, patrolRadius);
 
-        // Vision cone
+        // Vision cone (based on sprite facing direction)
         Gizmos.color = HasLOS ? Color.red : Color.green;
-        Vector3 leftBound = Quaternion.Euler(0, -visionAngle, 0) * transform.forward * visionRange;
-        Vector3 rightBound = Quaternion.Euler(0, visionAngle, 0) * transform.forward * visionRange;
+        Vector3 facing = Application.isPlaying ? FacingDirection : Vector3.right;
+        Vector3 leftBound = Quaternion.Euler(0, 0, visionAngle) * facing * visionRange;
+        Vector3 rightBound = Quaternion.Euler(0, 0, -visionAngle) * facing * visionRange;
         Gizmos.DrawLine(transform.position, transform.position + leftBound);
         Gizmos.DrawLine(transform.position, transform.position + rightBound);
 

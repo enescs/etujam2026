@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using System;
 
 public class MaskSystem : MonoBehaviour
@@ -11,7 +12,7 @@ public class MaskSystem : MonoBehaviour
     [SerializeField] private float corruptionThresholdGameOver = 100f;
 
     [Header("Mask Toggle")]
-    [SerializeField] private KeyCode maskKey = KeyCode.E;
+    // Uses E key via new Input System
 
     public bool IsMaskOn { get; private set; }
     public float CurrentCorruption { get; private set; }
@@ -53,7 +54,8 @@ public class MaskSystem : MonoBehaviour
     private void Update()
     {
         // Instant toggle - no cooldown
-        if (Input.GetKeyDown(maskKey) && !IsFullyCorrupted)
+        Keyboard kb = Keyboard.current;
+        if (kb != null && kb.eKey.wasPressedThisFrame && !IsFullyCorrupted)
         {
             ToggleMask();
         }
