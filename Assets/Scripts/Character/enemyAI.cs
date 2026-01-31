@@ -1,21 +1,4 @@
 using UnityEngine;
-<<<<<<< HEAD
-
-public class enemyAi : MonoBehaviour
-{
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-}
-=======
 using System.Collections.Generic;
 
 public enum EnemyState
@@ -446,4 +429,3 @@ public class EnemyAI : MonoBehaviour
         Gizmos.DrawWireSphere(center, midRange);
     }
 }
->>>>>>> charDesign
