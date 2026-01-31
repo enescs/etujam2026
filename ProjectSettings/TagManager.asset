@@ -5,17 +5,18 @@ TagManager:
   serializedVersion: 3
   tags:
   - Stone
+  - Enemy
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - Throwable
+  - Obstacle
   - Water
   - UI
-  - Obstacle
-  - Monster
-  - Rope
-  - Player
+  - Throwable
+  - 
+  - 
+  - 
   - 
   - 
   - 
