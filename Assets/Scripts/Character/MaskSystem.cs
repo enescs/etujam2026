@@ -10,10 +10,6 @@ public class MaskSystem : MonoBehaviour
     [SerializeField] private float corruptionPerSecond = 5f; // while mask is on
     [SerializeField] private float corruptionThresholdGameOver = 100f;
 
-    [Header("Mask Toggle")]
-    [SerializeField] private KeyCode maskKey = KeyCode.E;
-    [SerializeField] private float maskCooldown = 0.5f; // prevent accidental double-tap
-
     public bool IsMaskOn { get; private set; }
     public float CurrentCorruption { get; private set; }
     public float CorruptionNormalized => CurrentCorruption / maxCorruption;
@@ -39,7 +35,6 @@ public class MaskSystem : MonoBehaviour
     /// </summary>
     public event Action OnFullCorruption;
 
-    private float cooldownTimer;
     private bool gameOverTriggered;
 
     private void Awake()
@@ -54,15 +49,6 @@ public class MaskSystem : MonoBehaviour
 
     private void Update()
     {
-        cooldownTimer -= Time.deltaTime;
-
-        // Handle mask toggle input
-        if (Input.GetKeyDown(maskKey) && cooldownTimer <= 0f && !IsFullyCorrupted)
-        {
-            ToggleMask();
-            cooldownTimer = maskCooldown;
-        }
-
         // Accumulate corruption while mask is on
         if (IsMaskOn)
         {
@@ -80,7 +66,7 @@ public class MaskSystem : MonoBehaviour
         }
     }
 
-    private void ToggleMask()
+    public void ToggleMask()
     {
         if (IsMaskOn)
             SetMaskOff();
@@ -91,6 +77,7 @@ public class MaskSystem : MonoBehaviour
     private void SetMaskOn()
     {
         IsMaskOn = true;
+        Debug.Log("[MaskSystem] Mask ON - Spirit World");
 
         // Reset detection when entering spirit world
         if (DetectionBar.Instance != null)
@@ -102,6 +89,7 @@ public class MaskSystem : MonoBehaviour
     private void SetMaskOff()
     {
         IsMaskOn = false;
+        Debug.Log("[MaskSystem] Mask OFF - Real World");
         OnMaskOff?.Invoke();
     }
 }
