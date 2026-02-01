@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 13312, guid: 0000000000000000e000000000000000, type: 0}
   m_Name: water
   m_EditorClassIdentifier: UnityEngine.dll::UnityEngine.Tilemaps.Tile
-  m_Sprite: {fileID: 7482667652216324306, guid: 59e676f182ad03c4185382e76f5ed283, type: 3}
-  m_Color: {r: 0, g: 0.07612944, b: 1, a: 1}
+  m_Sprite: {fileID: -4124057691748712743, guid: baad8cfa17565c24cbea9d80c3b5c53c, type: 3}
+  m_Color: {r: 0.84862876, g: 0.9056604, b: 0.8244927, a: 1}
   m_Transform:
     e00: 1
     e01: 0
