@@ -82,8 +82,9 @@ public class EnemyAI : MonoBehaviour
         spawnPosition = transform.position;
         rb = GetComponent<Rigidbody2D>();
         PickNewPatrolPoint();
-        Physics2D.IgnoreLayerCollision(7, 9, true);
-        Physics2D.IgnoreLayerCollision(7, 3, true);
+        // Not: Layer collision ignore'ları kaldırıldı - Cliff trigger'ının çalışması için
+        // Eğer belirli layer'lar arasında collision kapatmak istiyorsan,
+        // Edit > Project Settings > Physics 2D > Layer Collision Matrix kullan
     }
 
     private void Start()
