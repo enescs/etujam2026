@@ -151,6 +151,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0c66260804b864443972bff89a19ddb8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::HideSpot
-  hiddenSortingOrder: 15
+  hiddenSortingOrder: -5
   interactionRange: 4
   hiddenAlpha: 0.2
