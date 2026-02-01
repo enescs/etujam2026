@@ -194,7 +194,7 @@ public class EnemyAI : MonoBehaviour
 
     private void UpdatePatrol()
     {
-        if (isTrackingPlayer)
+        if (isTrackingPlayer && playerTransform != null)
         {
             // LOS active: face toward player, don't move
             FlipToward(playerTransform.position);
