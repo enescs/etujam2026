@@ -83,6 +83,7 @@ public class EnemyAI : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         PickNewPatrolPoint();
         Physics2D.IgnoreLayerCollision(7, 9, true);
+        Physics2D.IgnoreLayerCollision(7, 6, true);
     }
 
     private void Start()
