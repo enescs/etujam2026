@@ -6,6 +6,9 @@ TagManager:
   tags:
   - Stone
   - Enemy
+  - pushable
+  - hole
+  - Wall
   layers:
   - Default
   - TransparentFX
@@ -19,7 +22,7 @@ TagManager:
   - Cliff
   - Player
   - Hole
-  - 
+  - Wall
   - 
   - 
   - 

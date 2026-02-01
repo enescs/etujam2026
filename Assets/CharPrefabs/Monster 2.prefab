@@ -136,6 +136,9 @@ MonoBehaviour:
   cliffLayer:
     serializedVersion: 2
     m_Bits: 512
+  holeLayer:
+    serializedVersion: 2
+    m_Bits: 2048
   cliffCheckRadius: 0.5
 --- !u!114 &4808957649067017711
 MonoBehaviour:
