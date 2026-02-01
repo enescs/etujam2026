@@ -13,10 +13,11 @@ public class Hole : MonoBehaviour
     [SerializeField] private float shrinkScale = 0.1f;
 
     [Header("Cover Detection")]
-    [SerializeField] private LayerMask coverLayer; // Pushable taşların layer'ı
+    [SerializeField] private string pushableTag = "pushable"; // Pushable taşların tag'ı
 
     private Collider2D col;
     private bool isCovered;
+    private bool isPermanentlyCovered; // Taş yerleştikten sonra kalıcı olarak kapalı
     private GameObject coveringObject;
 
     // Player deliğe düşüyor mu?
@@ -39,20 +40,29 @@ public class Hole : MonoBehaviour
 
     private void CheckForCover()
     {
-        // Deliğin merkezinde pushable obje var mı?
+        // Kalıcı olarak kapatıldıysa kontrol etmeye gerek yok
+        if (isPermanentlyCovered)
+        {
+            isCovered = true;
+            return;
+        }
+
+        // Deliğin merkezinde pushable obje var mı? (tüm collider'ları tara)
         Collider2D[] hits = Physics2D.OverlapBoxAll(
             col.bounds.center,
             col.bounds.size * 0.8f, // Biraz küçült ki tam üstünde olsun
-            0f,
-            coverLayer
+            0f
         );
 
-        bool wasCoovered = isCovered;
+        bool wasCovered = isCovered;
         isCovered = false;
         coveringObject = null;
 
         foreach (var hit in hits)
         {
+            // Tag ile kontrol et
+            if (!hit.CompareTag(pushableTag)) continue;
+
             Pushable pushable = hit.GetComponent<Pushable>();
             if (pushable != null && !pushable.IsBeingPushed)
             {
@@ -64,7 +74,7 @@ public class Hole : MonoBehaviour
         }
 
         // Debug
-        if (wasCoovered != isCovered)
+        if (wasCovered != isCovered)
         {
             Debug.Log($"[Hole] {gameObject.name} is now {(isCovered ? "COVERED" : "OPEN")}");
         }
@@ -80,9 +90,11 @@ public class Hole : MonoBehaviour
         }
 
         // Pushable obje (taş) deliğe girdi - üstüne yerleş, düşürme
-        Pushable pushable = other.GetComponent<Pushable>();
-        if (pushable != null)
+        if (other.CompareTag(pushableTag))
         {
+            Pushable pushable = other.GetComponent<Pushable>();
+            if (pushable == null) return;
+
             // Taş itiliyorsa üstüne yerleşsin, değilse bir şey yapma
             if (pushable.IsBeingPushed)
             {
@@ -136,7 +148,19 @@ public class Hole : MonoBehaviour
         }
 
         obj.transform.position = targetPos;
-        Debug.Log($"[Hole] {obj.name} snapped to hole center");
+
+        // Taşın collider'ını kapat - üstünden geçilebilsin
+        Collider2D stoneCollider = obj.GetComponent<Collider2D>();
+        if (stoneCollider != null)
+        {
+            stoneCollider.enabled = false;
+        }
+
+        // Kalıcı olarak kapalı işaretle
+        isPermanentlyCovered = true;
+        isCovered = true;
+
+        Debug.Log($"[Hole] {obj.name} snapped to hole center, hole permanently covered");
     }
 
     private System.Collections.IEnumerator FallAnimation(GameObject obj, bool isPlayer)

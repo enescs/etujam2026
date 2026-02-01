@@ -11,35 +11,35 @@ public class PlayerAnimation : MonoBehaviour
     [SerializeField] private Sprite[] normalWalkLeft;
     [SerializeField] private Sprite[] normalWalkUp;
     [SerializeField] private Sprite[] normalWalkDown;
-    
+
     [Header("Normal - Idle Sprites")]
     [SerializeField] private Sprite normalIdleRight;
     [SerializeField] private Sprite normalIdleLeft;
     [SerializeField] private Sprite normalIdleUp;
     [SerializeField] private Sprite normalIdleDown;
-    
+
     [Header("=== SPIRIT FORM (Ruhlar Alemi) ===")]
     [Header("Spirit - Walk Sprites")]
     [SerializeField] private Sprite[] spiritWalkRight;
     [SerializeField] private Sprite[] spiritWalkLeft;
     [SerializeField] private Sprite[] spiritWalkUp;
     [SerializeField] private Sprite[] spiritWalkDown;
-    
+
     [Header("Spirit - Idle Sprites")]
     [SerializeField] private Sprite spiritIdleRight;
     [SerializeField] private Sprite spiritIdleLeft;
     [SerializeField] private Sprite spiritIdleUp;
     [SerializeField] private Sprite spiritIdleDown;
-    
+
     [Header("Animation Settings")]
     [SerializeField] private float frameRate = 8f;
-    
+
     private SpriteRenderer spriteRenderer;
     private int currentFrame;
     private float frameTimer;
     private FacingDirection currentDirection = FacingDirection.Down;
     private bool isInSpiritWorld = false;
-    
+
     public Vector2 MoveInput { get; set; }
 
     void Awake()
@@ -83,7 +83,7 @@ public class PlayerAnimation : MonoBehaviour
     void Update()
     {
         bool isMoving = MoveInput.sqrMagnitude > 0.01f;
-        
+
         if (isMoving)
         {
             UpdateFacing();
@@ -164,12 +164,12 @@ public class PlayerAnimation : MonoBehaviour
     private void AnimateWalk()
     {
         Sprite[] activeSprites = GetCurrentWalkSprites();
-        
+
         if (activeSprites == null || activeSprites.Length == 0) return;
-        
+
         frameTimer += Time.deltaTime;
         float frameDuration = 1f / frameRate;
-        
+
         if (frameTimer >= frameDuration)
         {
             frameTimer -= frameDuration;
@@ -181,7 +181,7 @@ public class PlayerAnimation : MonoBehaviour
     private void ShowIdleSprite()
     {
         Sprite idle = GetCurrentIdleSprite();
-        
+
         if (idle != null)
         {
             spriteRenderer.sprite = idle;

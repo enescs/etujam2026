@@ -75,13 +75,25 @@ public class EnemyAI : MonoBehaviour
     private Vector3 lureTarget;
     private float lureTimer;
 
+    [Header("Wall Pass-Through")]
+    [SerializeField] private int wallLayer = 12; // Wall layer index
+
     // Cached
     private Rigidbody2D rb;
+    private int enemyLayer;
+    private Collider2D myCollider;
+    private bool originalIsTrigger;
 
     private void Awake()
     {
         spawnPosition = transform.position;
         rb = GetComponent<Rigidbody2D>();
+        myCollider = GetComponent<Collider2D>();
+        enemyLayer = gameObject.layer;
+
+        if (myCollider != null)
+            originalIsTrigger = myCollider.isTrigger;
+
         PickNewPatrolPoint();
         Physics2D.IgnoreLayerCollision(7, 9, true);
         Physics2D.IgnoreLayerCollision(7, 6, true);
@@ -113,7 +125,20 @@ public class EnemyAI : MonoBehaviour
         {
             MaskSystem.Instance.OnMaskOn += HandleMaskOn;
             MaskSystem.Instance.OnMaskOff += HandleMaskOff;
+
+            // Eğer mask zaten açıksa, spirit world'e geç
+            if (MaskSystem.Instance.IsMaskOn)
+            {
+                HandleMaskOn();
+                return;
+            }
         }
+        else
+        {
+            Debug.LogWarning("[EnemyAI] MaskSystem.Instance is null! Wall pass-through won't work.");
+        }
+
+        Debug.Log($"[EnemyAI] Started. Enemy layer: {enemyLayer} ({LayerMask.LayerToName(enemyLayer)}), Wall layer: {wallLayer} ({LayerMask.LayerToName(wallLayer)})");
 
         SetVisuals(false); // start in real world
     }
@@ -410,6 +435,8 @@ public class EnemyAI : MonoBehaviour
 
     private void HandleMaskOn()
     {
+        Debug.Log($"[EnemyAI] HandleMaskOn called! Enemy: {gameObject.name}");
+
         // Instant snap to spirit world
         CurrentState = EnemyState.SpiritIdle;
         isTrackingPlayer = false;
@@ -418,6 +445,9 @@ public class EnemyAI : MonoBehaviour
         losLostTimer = 0f;
         SetVisuals(true);
         PickNewSpiritWanderPoint();
+
+        // Duvarlardan geçebilsin
+        SetWallCollisions(true);
     }
 
     private void HandleMaskOff()
@@ -430,6 +460,9 @@ public class EnemyAI : MonoBehaviour
         losLostTimer = 0f;
         SetVisuals(false);
         PickNewPatrolPoint();
+
+        // Duvarlara çarpsın
+        SetWallCollisions(false);
     }
 
     private void UpdateSpiritIdle()
@@ -536,6 +569,16 @@ public class EnemyAI : MonoBehaviour
     {
         if (monsterVisual != null) monsterVisual.SetActive(!spiritWorld);
         if (humanVisual != null) humanVisual.SetActive(spiritWorld);
+    }
+
+    private void SetWallCollisions(bool ignore)
+    {
+        // Collider'ı trigger yaparak tüm fiziksel çarpışmaları devre dışı bırak
+        if (myCollider != null)
+        {
+            myCollider.isTrigger = ignore || originalIsTrigger;
+            Debug.Log($"[EnemyAI] Collider isTrigger set to {myCollider.isTrigger} (spirit mode: {ignore})");
+        }
     }
 
     // ─────────────────────────────────────────────

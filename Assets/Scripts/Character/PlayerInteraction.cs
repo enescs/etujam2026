@@ -15,7 +15,7 @@ public class PlayerInteraction : MonoBehaviour
 
     [Header("Push/Pull Settings")]
     [SerializeField] private float pushRange = 1.5f;
-    [SerializeField] private LayerMask pushableLayer;
+    [SerializeField] private string pushableTag = "pushable";
 
     private GameObject heldItem;
     private Camera mainCamera;
@@ -252,20 +252,24 @@ public class PlayerInteraction : MonoBehaviour
 
     private void TryStartPush()
     {
-        Debug.Log($"[Push] TryStartPush called. pushRange={pushRange}, pushableLayer={pushableLayer.value}");
-        
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, pushRange, pushableLayer);
+        Debug.Log($"[Push] TryStartPush called. pushRange={pushRange}, pushableTag={pushableTag}");
+
+        // Tüm collider'ları al, sonra tag ile filtrele
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(transform.position, pushRange);
 
         Debug.Log($"[Push] Found {colliders.Length} colliders in range");
-        
+
         if (colliders.Length == 0) return;
 
-        // En yakın pushable'ı bul
+        // En yakın pushable'ı bul (tag ile filtrele)
         Collider2D closest = null;
         float closestDistance = float.MaxValue;
 
         foreach (var col in colliders)
         {
+            // Tag kontrolü
+            if (!col.CompareTag(pushableTag)) continue;
+
             Debug.Log($"[Push] Checking collider: {col.gameObject.name}");
             float dist = Vector2.Distance(transform.position, col.transform.position);
             if (dist < closestDistance)
@@ -279,7 +283,7 @@ public class PlayerInteraction : MonoBehaviour
         {
             Pushable pushable = closest.GetComponent<Pushable>();
             Debug.Log($"[Push] Closest: {closest.gameObject.name}, has Pushable: {pushable != null}");
-            
+
             if (pushable != null)
             {
                 Debug.Log($"[Push] CanBePushed: {pushable.CanBePushed()}");
