@@ -19,6 +19,7 @@ public class EnemyAI : MonoBehaviour
 
     [Header("Chase Settings")]
     [SerializeField] private float chaseSpeed = 5f;
+    [SerializeField] private float catchDistance = 0.8f;
 
     [Header("Detection Settings")]
     [SerializeField] private float visionRange = 15f;
@@ -302,8 +303,28 @@ public class EnemyAI : MonoBehaviour
         FlipToward(playerTransform.position);
         MoveToward(playerTransform.position, chaseSpeed);
 
-        // TODO: Add attack logic when close enough
-        // TODO: Add logic for losing the player / returning to patrol
+        // Oyuncuyu yakala
+        float distToPlayer = Vector2.Distance(transform.position, playerTransform.position);
+        if (distToPlayer <= catchDistance)
+        {
+            Debug.Log($"[EnemyAI] CAUGHT PLAYER! Distance: {distToPlayer}");
+            CatchPlayer();
+        }
+    }
+
+    private void CatchPlayer()
+    {
+        Debug.Log($"[EnemyAI] CatchPlayer called. GameManager exists: {GameManager.Instance != null}");
+
+        if (GameManager.Instance != null)
+        {
+            Debug.Log($"[EnemyAI] Calling TriggerGameOver. Already game over: {GameManager.Instance.IsGameOver}");
+            GameManager.Instance.TriggerGameOver();
+        }
+        else
+        {
+            Debug.LogError("[EnemyAI] GameManager not found! Cannot trigger game over.");
+        }
     }
 
     // ─────────────────────────────────────────────

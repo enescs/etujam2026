@@ -20,14 +20,18 @@ public class PlayerController : MonoBehaviour
 
     void FixedUpdate()
     {
+        // Game over ise hareket etme
+        if (GameManager.Instance != null && GameManager.Instance.IsGameOver)
+            return;
+
         float currentSpeed = moveSpeed;
-        
+
         // Push sırasında yavaşla
         if (playerInteraction != null && playerInteraction.IsPushing)
         {
             currentSpeed *= pushSpeedMultiplier;
         }
-        
+
         rb.linearVelocity = moveInput * currentSpeed;
     }
 
