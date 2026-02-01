@@ -11,10 +11,10 @@ GameObject:
   - component: {fileID: 851171549474216005}
   - component: {fileID: 1402029258086882964}
   - component: {fileID: 6954371364397455821}
-  - component: {fileID: 4634222642159795152}
   - component: {fileID: 7740445431169625034}
+  - component: {fileID: 4634222642159795152}
   - component: {fileID: 1234567890123456789}
-  m_Layer: 7
+  m_Layer: 8
   m_Name: Monster
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -30,8 +30,8 @@ Transform:
   m_GameObject: {fileID: 8213296914236509521}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5.18, y: -0.49, z: 0}
-  m_LocalScale: {x: 0.4173286, y: 0.29544145, z: 1}
+  m_LocalPosition: {x: 5.18, y: -0.49, z: -1}
+  m_LocalScale: {x: 2, y: 2, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -85,7 +85,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 3
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -5761555324082941179, guid: 288b8438ed9cd0643bd1bf3bba7485ed, type: 3}
+  m_Sprite: {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -108,10 +108,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
   patrolRadius: 1.5
+  detectionSpeed: 4
   patrolSpeed: 2
   patrolWaitTime: 2
   chaseSpeed: 50
-  detectionSpeed: 4
   visionRange: 9
   visionAngle: 85
   detectionContributionClose: 1
@@ -131,6 +131,23 @@ MonoBehaviour:
   monsterVisual: {fileID: 0}
   humanVisual: {fileID: 0}
   groupId: 0
+--- !u!114 &7740445431169625034
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8213296914236509521}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d99fa81f3af2be44a950519ec54423a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyDetectionBarUI
+  offset: {x: 0, y: 1.5, z: 0}
+  barSize: {x: 1, y: 0.15}
+  backgroundColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.8}
+  fillSafeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  fillDangerColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!50 &4634222642159795152
 Rigidbody2D:
   serializedVersion: 5
@@ -158,32 +175,15 @@ Rigidbody2D:
   m_SleepingMode: 1
   m_CollisionDetection: 0
   m_Constraints: 4
---- !u!114 &7740445431169625034
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8213296914236509521}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0d99fa81f3af2be44a950519ec54423a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::EnemyDetectionBarUI
-  offset: {x: 0, y: 1.5, z: 0}
-  barSize: {x: 1, y: 0.15}
-  backgroundColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.8}
-  fillSafeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
-  fillDangerColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!58 &1234567890123456789
 CircleCollider2D:
-  serializedVersion: 2
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8213296914236509521}
   m_Enabled: 1
+  serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
   m_IncludeLayers:
@@ -207,6 +207,7 @@ CircleCollider2D:
     m_Bits: 4294967295
   m_IsTrigger: 0
   m_UsedByEffector: 0
-  m_UsedByComposite: 0
-  m_Offset: {x: 0, y: 0.5}
-  m_Radius: 0.5
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: -0.0017683506, y: 0.011977285}
+  m_Radius: 0.12337351
