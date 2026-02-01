@@ -15,6 +15,7 @@ GameObject:
   - component: {fileID: 2801723115206743882}
   - component: {fileID: 7220033328511250843}
   - component: {fileID: 4606276815546270891}
+  - component: {fileID: -6253357540017017299}
   m_Layer: 7
   m_Name: Monster 2
   m_TagString: Untagged
@@ -127,6 +128,7 @@ MonoBehaviour:
     m_Bits: 8
   spiritWanderRadius: 1
   spiritWanderSpeed: 1.5
+  spiritWaitTime: 4
   lureSpeed: 5
   lureArriveDistance: 1
   lureDuration: 1
@@ -136,6 +138,9 @@ MonoBehaviour:
   cliffLayer:
     serializedVersion: 2
     m_Bits: 512
+  holeLayer:
+    serializedVersion: 2
+    m_Bits: 0
   cliffCheckRadius: 0.5
 --- !u!114 &4808957649067017711
 MonoBehaviour:
@@ -263,3 +268,37 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2.18, y: 2.9}
   m_EdgeRadius: 0
+--- !u!114 &-6253357540017017299
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1646157513400896346}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ce0b96d67963bf428e4cfdf927ff2aa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyAnimation
+  normalWalkRight:
+  - {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
+  normalWalkLeft:
+  - {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
+  normalWalkUp:
+  - {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
+  normalWalkDown:
+  - {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
+  normalIdleRight: {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
+  normalIdleLeft: {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
+  normalIdleUp: {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
+  normalIdleDown: {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
+  spiritWalkRight: []
+  spiritWalkLeft: []
+  spiritWalkUp: []
+  spiritWalkDown: []
+  spiritIdleRight: {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
+  spiritIdleLeft: {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
+  spiritIdleUp: {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
+  spiritIdleDown: {fileID: -1120751345719415555, guid: fe635b8906da4d448946493181d2a6d0, type: 3}
+  frameRate: 8
+  movementThreshold: 0.01
