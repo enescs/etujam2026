@@ -302,6 +302,15 @@ public class PlayerInteraction : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// Dışarıdan push hedefini temizlemek için (örn: taş hole'a düştüğünde)
+    /// </summary>
+    public void ClearPushTarget()
+    {
+        currentPushable = null;
+        Debug.Log("[PlayerInteraction] Push target cleared externally");
+    }
+
     void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.cyan;
