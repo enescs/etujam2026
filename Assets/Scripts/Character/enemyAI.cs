@@ -127,6 +127,18 @@ public class EnemyAI : MonoBehaviour
 
     private void FixedUpdate()
     {
+        // Game over ise hareket etme
+        if (GameManager.Instance != null && GameManager.Instance.IsGameOver)
+        {
+            if (rb != null)
+                rb.linearVelocity = Vector2.zero;
+            return;
+        }
+
+        // Debug: State kontrolü
+        if (Time.frameCount % 60 == 0)
+            Debug.Log($"[EnemyAI] State: {CurrentState}, HasLOS: {HasLOS}, GameManager: {GameManager.Instance != null}, IsGameOver: {GameManager.Instance?.IsGameOver}");
+
         switch (CurrentState)
         {
             case EnemyState.Patrol:
@@ -305,6 +317,11 @@ public class EnemyAI : MonoBehaviour
 
         // Oyuncuyu yakala
         float distToPlayer = Vector2.Distance(transform.position, playerTransform.position);
+
+        // Debug: Her frame mesafeyi göster
+        if (Time.frameCount % 30 == 0)
+            Debug.Log($"[EnemyAI] CHASE - Distance to player: {distToPlayer:F2}, catchDistance: {catchDistance}");
+
         if (distToPlayer <= catchDistance)
         {
             Debug.Log($"[EnemyAI] CAUGHT PLAYER! Distance: {distToPlayer}");
