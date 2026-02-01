@@ -113,7 +113,7 @@ MonoBehaviour:
   detectionSpeed: 22
   patrolSpeed: 2
   patrolWaitTime: 2
-  chaseSpeed: 5
+  chaseSpeed: 2
   catchDistance: 0.8
   visionRange: 11
   visionAngle: 180
@@ -142,6 +142,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   cliffCheckRadius: 0.5
+  wallLayer: 12
 --- !u!114 &5998379520342492729
 MonoBehaviour:
   m_ObjectHideFlags: 0

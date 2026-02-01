@@ -11,6 +11,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/_Project/Scenes/village_complete.unity
     guid: bb47b6736685f85418b4c0c376c5fcc6
+  - enabled: 1
+    path: Assets/_Project/Scenes/cave.unity
+    guid: 1b1571dddf0c7b04d88171a655c68376
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
