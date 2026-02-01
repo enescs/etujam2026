@@ -23,10 +23,39 @@ public class GameManager : MonoBehaviour
         Instance = this;
     }
 
+    [Header("Start Settings")]
+    [SerializeField] private bool waitInputToStart = true; // Oyun başında bekleme olsun mu?
+    
+    private bool hasGameStarted = false;
+
     private void Start()
     {
         if (gameOverUI != null)
             gameOverUI.SetActive(false);
+
+        // Oyunun zamanını normale döndür (Menüden gelince sorun olmasın)
+        Time.timeScale = 1f;
+        hasGameStarted = true;
+    }
+
+    private void Update()
+    {
+        // Oyun henüz başlamadıysa ve tuşa basılırsa başlat
+        if (waitInputToStart && !hasGameStarted)
+        {
+            // Sadece ENTER tuşuna basılınca başlasın (WASD ile başlamaz)
+            if (Input.GetKeyDown(KeyCode.Return)) 
+            {
+                BeginGameGameplay();
+            }
+        }
+    }
+
+    public void BeginGameGameplay()
+    {
+        hasGameStarted = true;
+        Time.timeScale = 1f;
+        Debug.Log("[GameManager] Game Started!");
     }
 
     public void TriggerGameOver()

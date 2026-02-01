@@ -17,6 +17,9 @@ public class Cliff : MonoBehaviour
 
     private void Awake()
     {
+        // Sahne yeniden yüklendiğinde durumu sıfırla
+        IsPlayerFalling = false;
+
         // Collider trigger olmalı
         Collider2D col = GetComponent<Collider2D>();
         if (col != null)
@@ -102,6 +105,12 @@ public class Cliff : MonoBehaviour
             if (GameManager.Instance != null)
             {
                 GameManager.Instance.TriggerGameOver();
+            }
+            else
+            {
+                // Fallback: GameManager yoksa direkt sahneyi yeniden yükle
+                UnityEngine.SceneManagement.SceneManager.LoadScene(
+                    UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
             }
         }
         else

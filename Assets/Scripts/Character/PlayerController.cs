@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.SceneManagement;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class PlayerController : MonoBehaviour
@@ -33,6 +34,15 @@ public class PlayerController : MonoBehaviour
         }
 
         rb.linearVelocity = moveInput * currentSpeed;
+
+        // Düşme kontrolü: Eğer oyuncu çok aşağı düşerse ölür
+        if (transform.position.y < -15f) // -15f değerini sahnenize göre ayarlayabilirsiniz
+        {
+            if (GameManager.Instance != null)
+                GameManager.Instance.TriggerGameOver();
+            else
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+        }
     }
 
     public void OnMove(InputValue value)

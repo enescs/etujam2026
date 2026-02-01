@@ -531,9 +531,16 @@ public class EnemyAI : MonoBehaviour
         Gizmos.DrawLine(transform.position, transform.position + rightBound);
 
         // Detection ranges
-        Gizmos.color = new Color(1f, 0f, 0f, 0.1f);
-        Gizmos.DrawWireSphere(center, closeRange);
         Gizmos.color = new Color(1f, 0.5f, 0f, 0.1f);
         Gizmos.DrawWireSphere(center, midRange);
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        if (collision.gameObject.CompareTag("Player"))
+        {
+            Debug.Log("[EnemyAI] Collision with Player!");
+            CatchPlayer();
+        }
     }
 }

@@ -7,8 +7,9 @@ public class PauseManager : MonoBehaviour
 
     void Update()
     {
-        // P tuşuna basıldığında durumu değiştir
-        if (Input.GetKeyDown(KeyCode.P))
+        // New Input System kullanımı (P tuşu)
+        if (UnityEngine.InputSystem.Keyboard.current != null && 
+            UnityEngine.InputSystem.Keyboard.current.pKey.wasPressedThisFrame)
         {
             if (isPaused)
                 ResumeGame();
@@ -28,7 +29,6 @@ public class PauseManager : MonoBehaviour
     {
         pausePanel.SetActive(false); // Paneli kapat
         Time.timeScale = 1f;         // Zamanı normale döndür
-        isPaused = true; // Hata olmaması için false yapıyoruz
         isPaused = false; 
     }
 }
