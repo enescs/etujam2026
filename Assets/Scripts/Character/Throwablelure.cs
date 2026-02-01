@@ -55,15 +55,33 @@ public class ThrowableLure : MonoBehaviour
 
     private void PullNearbyEnemies()
     {
+        // DEBUG: Tüm collider'ları bul (layer farketmez)
+        Collider2D[] allHits = Physics2D.OverlapCircleAll(transform.position, lureRadius);
+        Debug.Log($"[ThrowableLure] DEBUG - ALL colliders in range: {allHits.Length}");
+        foreach (var c in allHits)
+        {
+            Debug.Log($"  -> {c.gameObject.name} (Layer: {LayerMask.LayerToName(c.gameObject.layer)})");
+        }
+        
+        // Asıl arama (sadece enemyLayer)
         Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, lureRadius, enemyLayer);
-        Debug.Log($"[ThrowableLure] Pulse! Found {hits.Length} colliders in radius {lureRadius}. Mask on: {MaskSystem.Instance?.IsMaskOn}");
+        Debug.Log($"[ThrowableLure] Pulse! Found {hits.Length} colliders in enemyLayer. Mask on: {MaskSystem.Instance?.IsMaskOn}");
+        
         foreach (Collider2D col in hits)
         {
-            EnemyAI enemy = col.GetComponent<EnemyAI>();
+            // Kendini hariç tut
+            if (col.gameObject == gameObject) continue;
+            
+            // Parent'ta da ara - collider child'da, script parent'ta olabilir
+            EnemyAI enemy = col.GetComponentInParent<EnemyAI>();
             if (enemy != null)
             {
                 Debug.Log($"[ThrowableLure] Luring enemy: {enemy.name}, state: {enemy.CurrentState}");
                 enemy.LureToPosition(transform.position);
+            }
+            else
+            {
+                Debug.LogWarning($"[ThrowableLure] Collider {col.gameObject.name} has no EnemyAI in parent!");
             }
         }
     }
