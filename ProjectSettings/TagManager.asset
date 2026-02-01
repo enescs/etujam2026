@@ -6,7 +6,6 @@ TagManager:
   tags:
   - Stone
   - Enemy
-  - Checkpoint
   layers:
   - Default
   - TransparentFX
@@ -17,7 +16,7 @@ TagManager:
   - Throwable
   - Pushable
   - Monster
-  - 
+  - Cliff
   - 
   - 
   - 
