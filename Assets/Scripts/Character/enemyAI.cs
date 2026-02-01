@@ -86,7 +86,17 @@ public class EnemyAI : MonoBehaviour
         // Find player - adjust this to however your player is referenced
         GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
         if (playerObj != null)
+        {
             playerTransform = playerObj.transform;
+
+            // Düşman ve oyuncu birbirini itemesin
+            Collider2D playerCol = playerObj.GetComponent<Collider2D>();
+            Collider2D myCol = GetComponent<Collider2D>();
+            if (playerCol != null && myCol != null)
+            {
+                Physics2D.IgnoreCollision(playerCol, myCol, true);
+            }
+        }
 
         // Register with the group manager
         if (EnemyGroupManager.Instance != null)
