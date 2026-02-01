@@ -87,6 +87,14 @@ public class Hole : MonoBehaviour
             if (pushable.IsBeingPushed)
             {
                 Debug.Log($"[Hole] Pushable {other.name} placed on hole!");
+
+                // Önce push'ı durdur - böylece taş artık "covering" sayılır
+                pushable.StopPush();
+
+                // Hemen covered olarak işaretle (snap animasyonu bitmeden güvenli olsun)
+                isCovered = true;
+                coveringObject = other.gameObject;
+
                 // Taş deliğin tam ortasına yerleşecek (snap)
                 StartCoroutine(SnapToCenter(other.gameObject));
             }
