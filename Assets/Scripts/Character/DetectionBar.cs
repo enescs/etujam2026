@@ -36,23 +36,27 @@ public class DetectionBar : MonoBehaviour
         Instance = this;
     }
 
-    private void LateUpdate()
+    private void FixedUpdate()
     {
-        // If no enemy added detection this frame, drain
+        // If no enemy added detection this physics frame, drain
         if (!anyEnemyHasLOS && CurrentDetection > 0f)
         {
-            CurrentDetection -= drainRate * Time.deltaTime;
+            CurrentDetection -= drainRate * Time.fixedDeltaTime;
             CurrentDetection = Mathf.Max(CurrentDetection, 0f);
         }
 
-        OnDetectionChanged?.Invoke(DetectionNormalized);
-
-        // Reset for next frame
+        // Reset for next physics frame
         anyEnemyHasLOS = false;
 
         // Reset trigger flag when bar empties fully
         if (CurrentDetection <= 0f)
             detectionTriggered = false;
+    }
+
+    private void LateUpdate()
+    {
+        // UI update only
+        OnDetectionChanged?.Invoke(DetectionNormalized);
     }
 
     /// <summary>
