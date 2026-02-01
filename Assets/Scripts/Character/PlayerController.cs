@@ -12,11 +12,13 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private Vector2 moveInput;
     private PlayerInteraction playerInteraction;
+    private PlayerAnimation playerAnimation;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         playerInteraction = GetComponent<PlayerInteraction>();
+        playerAnimation = GetComponent<PlayerAnimation>();
     }
 
     void FixedUpdate()
@@ -49,5 +51,11 @@ public class PlayerController : MonoBehaviour
     {
         if (GetComponent<PlayerClimb>()?.IsClimbing == true) return;
         moveInput = value.Get<Vector2>();
+
+        // Animasyon sistemine input'u ilet
+        if (playerAnimation != null)
+        {
+            playerAnimation.MoveInput = moveInput;
+        }
     }
 }
