@@ -81,7 +81,7 @@ public class Pushable : MonoBehaviour
     {
         if (!isBeingPushed) return;
 
-        // Çarpışmayı tekrar aç
+        // Çarpışmayı tekrar aç ve oyuncuya bildir
         if (pusher != null)
         {
             Collider2D pusherCollider = pusher.GetComponent<Collider2D>();
@@ -89,6 +89,13 @@ public class Pushable : MonoBehaviour
             if (pusherCollider != null && myCollider != null)
             {
                 Physics2D.IgnoreCollision(pusherCollider, myCollider, false);
+            }
+
+            // Oyuncunun push referansını temizle
+            PlayerInteraction playerInteraction = pusher.GetComponent<PlayerInteraction>();
+            if (playerInteraction != null)
+            {
+                playerInteraction.ClearPushTarget();
             }
         }
 
