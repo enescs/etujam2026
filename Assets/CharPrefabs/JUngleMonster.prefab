@@ -31,7 +31,7 @@ Transform:
   m_GameObject: {fileID: 1646157513400896346}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0.792, y: -1.991, z: 0}
+  m_LocalPosition: {x: 0.792, y: -1.991, z: -1}
   m_LocalScale: {x: 5, y: 5, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -127,6 +127,7 @@ MonoBehaviour:
     m_Bits: 8
   spiritWanderRadius: 1
   spiritWanderSpeed: 1.5
+  spiritWaitTime: 4
   lureSpeed: 5
   lureArriveDistance: 1
   lureDuration: 1
@@ -136,7 +137,11 @@ MonoBehaviour:
   cliffLayer:
     serializedVersion: 2
     m_Bits: 512
+  holeLayer:
+    serializedVersion: 2
+    m_Bits: 0
   cliffCheckRadius: 0.5
+  wallLayer: 12
 --- !u!114 &4808957649067017711
 MonoBehaviour:
   m_ObjectHideFlags: 0
