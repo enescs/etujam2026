@@ -51,6 +51,10 @@ public class EnemyAI : MonoBehaviour
     [Header("Group")]
     [SerializeField] private int groupId = 0;
 
+    [Header("Cliff Avoidance")]
+    [SerializeField] private LayerMask cliffLayer;
+    [SerializeField] private float cliffCheckRadius = 0.5f;
+
     // State
     public EnemyState CurrentState { get; private set; } = EnemyState.Patrol;
     public int GroupId => groupId;
@@ -199,8 +203,31 @@ public class EnemyAI : MonoBehaviour
 
     private void PickNewPatrolPoint()
     {
-        Vector2 randomCircle = Random.insideUnitCircle * patrolRadius;
-        currentPatrolTarget = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
+        // Uçurum olmayan bir nokta bul (max 10 deneme)
+        for (int i = 0; i < 10; i++)
+        {
+            Vector2 randomCircle = Random.insideUnitCircle * patrolRadius;
+            Vector3 candidate = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
+
+            if (!IsPointOverCliff(candidate))
+            {
+                currentPatrolTarget = candidate;
+                return;
+            }
+        }
+
+        // 10 denemede bulamadıysa mevcut pozisyonda kal
+        currentPatrolTarget = transform.position;
+    }
+
+    /// <summary>
+    /// Verilen noktanın uçurum üzerinde olup olmadığını kontrol eder.
+    /// </summary>
+    private bool IsPointOverCliff(Vector3 point)
+    {
+        // Cliff layer'ında collider var mı?
+        Collider2D hit = Physics2D.OverlapCircle(point, cliffCheckRadius, cliffLayer);
+        return hit != null;
     }
 
     // ─────────────────────────────────────────────
@@ -239,6 +266,10 @@ public class EnemyAI : MonoBehaviour
 
         // Oyuncu gizliyse görme
         if (PlayerHiding.Instance != null && PlayerHiding.Instance.IsHidden)
+            return false;
+
+        // Oyuncu uçuruma düşüyorsa görme
+        if (Cliff.IsPlayerFalling)
             return false;
 
         Vector3 dirToPlayer = (playerTransform.position - transform.position);
@@ -302,8 +333,8 @@ public class EnemyAI : MonoBehaviour
     {
         if (playerTransform == null) return;
 
-        // Oyuncu gizlendiyse takibi bırak
-        if (PlayerHiding.Instance != null && PlayerHiding.Instance.IsHidden)
+        // Oyuncu gizlendiyse veya uçuruma düşüyorsa takibi bırak
+        if ((PlayerHiding.Instance != null && PlayerHiding.Instance.IsHidden) || Cliff.IsPlayerFalling)
         {
             CurrentState = EnemyState.Patrol;
             isTrackingPlayer = false;
@@ -340,7 +371,10 @@ public class EnemyAI : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[EnemyAI] GameManager not found! Cannot trigger game over.");
+            // GameManager yoksa manuel olarak sahneyi yeniden yükle
+            Debug.LogWarning("[EnemyAI] GameManager not found! Reloading scene directly.");
+            UnityEngine.SceneManagement.SceneManager.LoadScene(
+                UnityEngine.SceneManagement.SceneManager.GetActiveScene().buildIndex);
         }
     }
 
@@ -425,8 +459,21 @@ public class EnemyAI : MonoBehaviour
 
     private void PickNewSpiritWanderPoint()
     {
-        Vector2 randomCircle = Random.insideUnitCircle * spiritWanderRadius;
-        currentPatrolTarget = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
+        // Uçurum olmayan bir nokta bul (max 10 deneme)
+        for (int i = 0; i < 10; i++)
+        {
+            Vector2 randomCircle = Random.insideUnitCircle * spiritWanderRadius;
+            Vector3 candidate = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
+
+            if (!IsPointOverCliff(candidate))
+            {
+                currentPatrolTarget = candidate;
+                return;
+            }
+        }
+
+        // 10 denemede bulamadıysa mevcut pozisyonda kal
+        currentPatrolTarget = transform.position;
     }
 
     // ─────────────────────────────────────────────
