@@ -49,6 +49,7 @@ public class EnemyAnimation : MonoBehaviour
 
     void Awake()
     {
+        Debug.Log($"[EnemyAnim] AWAKE called on {gameObject.name}");
         spriteRenderer = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
     }
@@ -65,6 +66,11 @@ public class EnemyAnimation : MonoBehaviour
             
             // Mevcut durumu al
             isInSpiritWorld = MaskSystem.Instance.IsMaskOn;
+            Debug.Log($"[EnemyAnim] {gameObject.name} Start - isInSpiritWorld: {isInSpiritWorld}");
+        }
+        else
+        {
+            Debug.LogWarning($"[EnemyAnim] {gameObject.name} - MaskSystem.Instance is NULL!");
         }
     }
 
@@ -82,6 +88,7 @@ public class EnemyAnimation : MonoBehaviour
         isInSpiritWorld = true;
         currentFrame = 0;
         frameTimer = 0f;
+        Debug.Log($"[EnemyAnim] {gameObject.name} entered SPIRIT WORLD");
     }
 
     private void OnExitSpiritWorld()
@@ -89,17 +96,21 @@ public class EnemyAnimation : MonoBehaviour
         isInSpiritWorld = false;
         currentFrame = 0;
         frameTimer = 0f;
+        Debug.Log($"[EnemyAnim] {gameObject.name} exited to NORMAL WORLD");
     }
 
     void Update()
     {
-        // Hareket yönünü hesapla
+        // Hareket yönünü hesapla (frame başına pozisyon değişimi)
         Vector2 currentPos = transform.position;
         Vector2 movement = currentPos - lastPosition;
-        bool isMoving = movement.sqrMagnitude > movementThreshold * movementThreshold * Time.deltaTime * Time.deltaTime;
+        
+        // Çok küçük hareketleri filtrele
+        bool isMoving = movement.magnitude > 0.001f;
         
         if (isMoving)
         {
+            Debug.Log($"[EnemyAnim] {gameObject.name} moving: {movement}, dir: {currentDirection}");
             UpdateFacing(movement);
             AnimateWalk();
         }
@@ -115,6 +126,8 @@ public class EnemyAnimation : MonoBehaviour
 
     private void UpdateFacing(Vector2 movement)
     {
+        EnemyFacingDirection oldDir = currentDirection;
+        
         if (Mathf.Abs(movement.x) > Mathf.Abs(movement.y))
         {
             currentDirection = movement.x > 0 ? EnemyFacingDirection.Right : EnemyFacingDirection.Left;
@@ -122,6 +135,11 @@ public class EnemyAnimation : MonoBehaviour
         else
         {
             currentDirection = movement.y > 0 ? EnemyFacingDirection.Up : EnemyFacingDirection.Down;
+        }
+        
+        if (oldDir != currentDirection)
+        {
+            Debug.Log($"[EnemyAnim] {gameObject.name} direction changed: {oldDir} -> {currentDirection}");
         }
     }
 

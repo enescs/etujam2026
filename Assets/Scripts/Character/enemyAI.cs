@@ -40,6 +40,7 @@ public class EnemyAI : MonoBehaviour
     [Header("Spirit World Settings")]
     [SerializeField] private float spiritWanderRadius = 10f;
     [SerializeField] private float spiritWanderSpeed = 1.5f;
+    [SerializeField] private float spiritWaitTime = 4f; // Ruhlar aleminde bekleme süresi
     [SerializeField] private float lureSpeed = 3f;
     [SerializeField] private float lureArriveDistance = 1f;
     [SerializeField] private float lureDuration = 4f;
@@ -467,24 +468,13 @@ public class EnemyAI : MonoBehaviour
 
     private void UpdateSpiritIdle()
     {
-        // Wander aimlessly in human form, no detection
-        if (isWaitingAtPatrolPoint)
-        {
-            patrolWaitTimer -= Time.deltaTime;
-            if (patrolWaitTimer <= 0f)
-            {
-                isWaitingAtPatrolPoint = false;
-                PickNewSpiritWanderPoint();
-            }
-            return;
-        }
-
+        // RUHLAR ALEMİNDE SÜREKLİ HAREKET - bekleme yok!
         MoveToward(currentPatrolTarget, spiritWanderSpeed);
 
+        // Hedefe vardıysa hemen yeni hedef seç
         if (Vector3.Distance(transform.position, currentPatrolTarget) < 0.5f)
         {
-            isWaitingAtPatrolPoint = true;
-            patrolWaitTimer = patrolWaitTime;
+            PickNewSpiritWanderPoint();
         }
     }
 
@@ -521,8 +511,17 @@ public class EnemyAI : MonoBehaviour
         // Uçurum veya delik olmayan bir nokta bul (max 10 deneme)
         for (int i = 0; i < 10; i++)
         {
-            Vector2 randomCircle = Random.insideUnitCircle * spiritWanderRadius;
-            Vector3 candidate = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
+            // Minimum yarım radius kadar uzakta bir nokta seç (gıdım gıdım değil)
+            float minRadius = spiritWanderRadius * 0.5f;
+            float maxRadius = spiritWanderRadius;
+            float distance = Random.Range(minRadius, maxRadius);
+            float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+            
+            Vector3 candidate = transform.position + new Vector3(
+                Mathf.Cos(angle) * distance,
+                Mathf.Sin(angle) * distance,
+                0f
+            );
 
             if (!IsPointDangerous(candidate))
             {
