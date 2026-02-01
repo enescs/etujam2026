@@ -11,11 +11,13 @@ public class PlayerController : MonoBehaviour
     private Rigidbody2D rb;
     private Vector2 moveInput;
     private PlayerInteraction playerInteraction;
+    private PlayerAnimation playerAnimation;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
         playerInteraction = GetComponent<PlayerInteraction>();
+        playerAnimation = GetComponent<PlayerAnimation>();
     }
 
     void FixedUpdate()
@@ -33,6 +35,12 @@ public class PlayerController : MonoBehaviour
         }
 
         rb.linearVelocity = moveInput * currentSpeed;
+        
+        // Animasyon script'ine hareket bilgisini gönder
+        if (playerAnimation != null)
+        {
+            playerAnimation.MoveInput = moveInput;
+        }
     }
 
     public void OnMove(InputValue value)

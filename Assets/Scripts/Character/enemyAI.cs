@@ -51,8 +51,9 @@ public class EnemyAI : MonoBehaviour
     [Header("Group")]
     [SerializeField] private int groupId = 0;
 
-    [Header("Cliff Avoidance")]
+    [Header("Cliff & Hole Avoidance")]
     [SerializeField] private LayerMask cliffLayer;
+    [SerializeField] private LayerMask holeLayer;
     [SerializeField] private float cliffCheckRadius = 0.5f;
 
     // State
@@ -203,13 +204,13 @@ public class EnemyAI : MonoBehaviour
 
     private void PickNewPatrolPoint()
     {
-        // Uçurum olmayan bir nokta bul (max 10 deneme)
+        // Uçurum veya delik olmayan bir nokta bul (max 10 deneme)
         for (int i = 0; i < 10; i++)
         {
             Vector2 randomCircle = Random.insideUnitCircle * patrolRadius;
             Vector3 candidate = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
 
-            if (!IsPointOverCliff(candidate))
+            if (!IsPointDangerous(candidate))
             {
                 currentPatrolTarget = candidate;
                 return;
@@ -228,6 +229,31 @@ public class EnemyAI : MonoBehaviour
         // Cliff layer'ında collider var mı?
         Collider2D hit = Physics2D.OverlapCircle(point, cliffCheckRadius, cliffLayer);
         return hit != null;
+    }
+
+    /// <summary>
+    /// Verilen noktanın (kapatılmamış) delik üzerinde olup olmadığını kontrol eder.
+    /// </summary>
+    private bool IsPointOverHole(Vector3 point)
+    {
+        // Hole layer'ında collider var mı?
+        Collider2D[] hits = Physics2D.OverlapCircleAll(point, cliffCheckRadius, holeLayer);
+        foreach (var hit in hits)
+        {
+            Hole hole = hit.GetComponent<Hole>();
+            // Delik kapalı değilse tehlikeli
+            if (hole != null && !hole.IsCovered)
+                return true;
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// Verilen noktanın tehlikeli (cliff veya açık hole) olup olmadığını kontrol eder.
+    /// </summary>
+    private bool IsPointDangerous(Vector3 point)
+    {
+        return IsPointOverCliff(point) || IsPointOverHole(point);
     }
 
     // ─────────────────────────────────────────────
@@ -268,8 +294,8 @@ public class EnemyAI : MonoBehaviour
         if (PlayerHiding.Instance != null && PlayerHiding.Instance.IsHidden)
             return false;
 
-        // Oyuncu uçuruma düşüyorsa görme
-        if (Cliff.IsPlayerFalling)
+        // Oyuncu uçuruma veya deliğe düşüyorsa görme
+        if (Cliff.IsPlayerFalling || Hole.IsPlayerFallingInHole)
             return false;
 
         Vector3 dirToPlayer = (playerTransform.position - transform.position);
@@ -333,8 +359,8 @@ public class EnemyAI : MonoBehaviour
     {
         if (playerTransform == null) return;
 
-        // Oyuncu gizlendiyse veya uçuruma düşüyorsa takibi bırak
-        if ((PlayerHiding.Instance != null && PlayerHiding.Instance.IsHidden) || Cliff.IsPlayerFalling)
+        // Oyuncu gizlendiyse veya uçuruma/deliğe düşüyorsa takibi bırak
+        if ((PlayerHiding.Instance != null && PlayerHiding.Instance.IsHidden) || Cliff.IsPlayerFalling || Hole.IsPlayerFallingInHole)
         {
             CurrentState = EnemyState.Patrol;
             isTrackingPlayer = false;
@@ -459,13 +485,13 @@ public class EnemyAI : MonoBehaviour
 
     private void PickNewSpiritWanderPoint()
     {
-        // Uçurum olmayan bir nokta bul (max 10 deneme)
+        // Uçurum veya delik olmayan bir nokta bul (max 10 deneme)
         for (int i = 0; i < 10; i++)
         {
             Vector2 randomCircle = Random.insideUnitCircle * spiritWanderRadius;
             Vector3 candidate = transform.position + new Vector3(randomCircle.x, randomCircle.y, 0f);
 
-            if (!IsPointOverCliff(candidate))
+            if (!IsPointDangerous(candidate))
             {
                 currentPatrolTarget = candidate;
                 return;
