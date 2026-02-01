@@ -109,12 +109,13 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyAI
   patrolRadius: 1.5
-  detectionSpeed: 16
+  detectionSpeed: 22
   patrolSpeed: 2
   patrolWaitTime: 2
   chaseSpeed: 5
+  catchDistance: 0.8
   visionRange: 11
-  visionAngle: 85
+  visionAngle: 180
   detectionContributionClose: 1
   detectionContributionMid: 0.5
   detectionContributionFar: 0.15
@@ -123,7 +124,7 @@ MonoBehaviour:
   losLostHoldTime: 2
   obstructionMask:
     serializedVersion: 2
-    m_Bits: 64
+    m_Bits: 8
   spiritWanderRadius: 1
   spiritWanderSpeed: 1.5
   lureSpeed: 5
@@ -132,6 +133,10 @@ MonoBehaviour:
   monsterVisual: {fileID: 0}
   humanVisual: {fileID: 0}
   groupId: 0
+  cliffLayer:
+    serializedVersion: 2
+    m_Bits: 512
+  cliffCheckRadius: 0.5
 --- !u!114 &4808957649067017711
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -144,7 +149,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0d99fa81f3af2be44a950519ec54423a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyDetectionBarUI
-  offset: {x: 0, y: 1.5, z: 0}
+  offset: {x: 0, y: 0.5, z: 0}
   barSize: {x: 1, y: 0.15}
   backgroundColor: {r: 0.2, g: 0.2, b: 0.2, a: 0.8}
   fillSafeColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}

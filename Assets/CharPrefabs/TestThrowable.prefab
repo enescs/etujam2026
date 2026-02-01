@@ -179,7 +179,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7db440551fb2414418644b944241d007, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ThrowableLure
-  lureRadius: 10
+  lureRadius: 30
   pulseInterval: 0.5
   lifetime: 2
   enemyLayer:

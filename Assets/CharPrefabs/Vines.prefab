@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 9093886264933361885}
   - component: {fileID: 8120950614728430873}
   - component: {fileID: 6087109867552073406}
+  - component: {fileID: -8672776843683270223}
   m_Layer: 0
   m_Name: Vines
   m_TagString: Untagged
@@ -100,7 +101,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5334981405691728545}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 23f48b4f5abca2145af617c316a2bc95, type: 3}
   m_Name: 
@@ -152,3 +153,18 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 2.62, y: 7.25}
   m_EdgeRadius: 0
+--- !u!114 &-8672776843683270223
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5334981405691728545}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5012b7b9cb99994fb2deb9f6295b600, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Vine
+  tearDuration: 2
+  interactionRange: 1.5
+  tearingColor: {r: 1, g: 0.5, b: 0.5, a: 1}

@@ -9,7 +9,7 @@ using UnityEngine.UI;
 public class EnemyDetectionBarUI : MonoBehaviour
 {
     [Header("Bar Settings")]
-    [SerializeField] private Vector3 offset = new Vector3(0f, 1.5f, 0f);
+    [SerializeField] private Vector3 offset = new Vector3(0f, 0.5f, 0f);
     [SerializeField] private Vector2 barSize = new Vector2(1f, 0.15f);
     [SerializeField] private Color backgroundColor = new Color(0.2f, 0.2f, 0.2f, 0.8f);
     [SerializeField] private Color fillSafeColor = Color.yellow;
